@@ -1,0 +1,376 @@
+#pragma once
+
+#include <cassert>
+
+#include <iostream>
+using namespace std;
+
+
+
+template<typename T>
+class Vector
+{
+public:
+	Vector();
+	Vector(const T* array, size_t size);
+	Vector(const Vector& v);
+	Vector& operator=(const Vector& s);
+	~Vector()
+	{
+		if (_start)
+		{
+			delete[] _start;
+			_start = NULL;
+			_finish = NULL;
+			_endOfStorage = NULL;
+		}
+	}
+
+		///////////////////Modify//////////////////////////////// 
+	void PushBack(const T& data);
+	void PopBack();
+	void Insert(size_t pos, const T& data);
+	void Erase(size_t pos);
+
+		//////////////////capacity//////////////////////////// 
+	size_t Size()const;
+	size_t VectorCapacity()const;
+		bool Empty()const;
+		void Resize(size_t newSize, const T& data = T());
+
+		//////////////Acess/////////////////////////// 
+		T& operator[](size_t index);
+		const T& operator[](size_t index)const;
+		T& Front();
+		const T& Front()const;
+		T& Back();
+		const T& Back()const;
+		void Clear();
+		friend ostream& operator<<(ostream& _cout, const Vector<T>& v);
+private:
+	void _CheckCapacity();
+
+private:
+	T *_start;
+	T *_finish;
+	T *_endOfStorage;
+};
+
+
+#define _CRT_SECURE_NO_WARNINGS
+#include "Vector.h"
+
+template<class T>
+Vector<T>::Vector()
+	:_start(NULL)
+	, _finish(NULL)
+	, _endOfStorage(NULL)
+{}
+
+template<typename T>
+Vector<T>::Vector(const T* array, size_t size)
+	:_start(new T[size])
+	, _finish(_start + size)
+	, _endOfStorage(_start + size)
+{
+	assert(array != NULL);
+	for (size_t i = 0; i < size; i++)
+	{
+		*(_start + i) = *(array + i);
+	}
+}
+
+template<typename T>
+size_t Vector<T>::Size()const
+{
+	return _finish - _start;
+}
+
+template<typename T>
+size_t Vector<T>::VectorCapacity()const
+{
+	return _endOfStorage - _start;
+}
+
+template<typename T>
+Vector<T>::Vector(const Vector& v)
+	:_start(new T[v.VectorCapacity()])
+	, _finish(_start + v.Size())
+	, _endOfStorage(_start + v.VectorCapacity())
+{
+	size_t size = v.Size();
+	for (size_t i = 0; i < size; i++)
+	{
+		*(_start + i) = *(v._start + i);
+	}
+}
+
+template<typename T>
+void Vector<T>::PushBack(const T& data)
+{
+	_CheckCapacity();
+	*_finish = data;
+	_finish++;
+}
+
+template<typename T>
+void Vector<T>::_CheckCapacity()
+{
+	if (_finish == _endOfStorage)
+	{
+		size_t newcapacity = 2 * VectorCapacity() + 3;
+		T *pTemp = new T[newcapacity];
+		size_t size = Size();
+		for (size_t i = 0; i < size; i++)
+		{
+			*(pTemp + i) = *(_start + i);
+		}
+		delete[] _start;
+		_start = pTemp;
+		_finish = _start + size;
+		_endOfStorage = _start + newcapacity;
+	}
+}
+
+template<typename T>
+void Vector<T>::PopBack()
+{
+	if (_finish)
+	{
+		_finish--;
+	}
+}
+
+template<typename T>
+void Vector<T>::Insert(size_t pos, const T& data)
+{
+	if (_start && pos<=Size() && pos>0)
+	{
+		VectorCapacity();
+		for (size_t i = Size(); i > pos-1; i--)
+		{
+			*(_start + i) = *(_start + i - 1);
+		}
+		*(_start + pos - 1) = data;
+		_finish++;
+	}
+}
+
+template<typename T>
+void Vector<T>::Erase(size_t pos)
+{
+	if (_start && pos > 0 && pos <= Size())
+	{
+		size_t size = Size();
+		if (size==1 || pos==size)
+		{
+			_finish--;
+		}
+		else
+		{
+			for (size_t i = pos - 1; i < size - 1; i++)
+			{
+				*(_start + i) = *(_start + i + 1);
+			}
+			_finish--;
+		}
+	}
+}
+
+template<typename T>
+Vector<T>& Vector<T>::operator=(const Vector& s)
+{
+	if (this != &s)
+	{
+		size_t s_size = s.Size();
+		size_t s_capacity = s.VectorCapacity();
+		T *pTemp = new T[s_capacity];
+		for (size_t i = 0; i < s_size; i++)
+		{
+			*(pTemp + i) = *(s._start + i);
+		}
+		delete[] _start;
+		_start = pTemp;
+		_finish = _start + s_size;
+		_endOfStorage = _start + s_capacity;
+	}
+	return *this;
+}
+
+template<typename T>
+bool Vector<T>::Empty()const
+{
+	if (_finish == _start)
+		return true;
+	return false;
+}
+
+template<typename T>
+T& Vector<T>::operator[](size_t index)
+{
+	if (_start && index < Size())
+	{
+		return *(_start + index - 1);
+	}
+}
+
+template<typename T>
+const T& Vector<T>::operator[](size_t index)const
+{
+	if (_start && index < Size())
+	{
+		return *(_start + index - 1);
+	}
+}
+
+template<typename T>
+T& Vector<T>::Front()
+{
+	if (_start && _start != _finish)
+	{
+		return *(_start);
+	}
+}
+
+template<typename T>
+const T& Vector<T>::Front()const
+{
+	if (_start && _start != _finish)
+	{
+		return *(_start);
+	}
+}
+
+template<typename T>
+T& Vector<T>::Back()
+{
+	if (_start&&_start != _finish)
+	{
+		return *(_finish - 1);
+	}
+}
+
+template<typename T>
+const T& Vector<T>::Back()const
+{
+	if (_start&&_start != _finish)
+	{
+		return *(_finish - 1);
+	}
+}
+
+template<typename T>
+void Vector<T>::Clear()
+{
+	_finish = _start;
+}
+
+template<typename T>
+void Vector<T>::Resize(size_t newSize, const T& data = T())
+{
+	size_t oldsize = Size();
+	size_t oldcapacity = VectorCapacity();
+	if (newSize <= oldsize)
+	{
+		_finish = _start + newSize;
+	}
+	else if (newSize > oldsize&&newSize <= oldcapacity)
+	{
+		for (size_t i = oldsize; i < newSize; i++)
+		{
+			*(_start + oldsize) = data;
+		}
+		_finish = _start + newSize;
+	}
+	else
+	{
+		T *pTemp = new T[newSize];
+		for (size_t i = 0; i < oldsize; i++)
+		{
+			*(pTemp + i) = *(_start + i);
+		}
+		for (size_t i = oldsize; i < newSize; i++)
+		{
+			*(pTemp + i) = data;
+		}
+		delete[] _start;
+		_start = pTemp;
+		_finish = _start + newSize;
+		_endOfStorage = _start + newSize;
+	}
+}
+//
+template<typename T>
+ostream& operator<<(ostream& _cout, const Vector<T>& v)
+{
+	if (v._start && v._start != v._finish)
+	{
+		for (size_t i = 0; i < v.Size(); i++)
+		{
+			cout << *(v._start + i) << " ";
+		}
+	}
+	return _cout;
+}
+
+template<typename T, typename Container = Vector<T>>
+class Stack
+{
+public:
+	Stack()
+	{}
+	void Push(const T& data)
+	{
+		_c.PushBack(data);
+	}
+
+	void Pop()
+	{
+		_c.PopBack();
+	}
+
+	size_t Size()const
+	{
+		return _c.Size();
+	}
+
+	bool Empty()const
+	{
+		return _c.Empty();
+	}
+
+	T& Top()
+	{
+		return _c.Back();
+	}
+
+	const T& Top()const
+	{
+		return _c.Back();
+	}
+
+private:
+	Container _c;
+};
+
+void test()
+{
+	Stack<int> s1;
+	s1.Push(1);
+	s1.Push(2);
+	s1.Push(3);
+	s1.Push(4);
+
+	s1.Pop();
+	s1.Pop();
+	s1.Pop();
+
+}
+
+int main()
+{
+	test();
+
+
+	return 0;
+}
