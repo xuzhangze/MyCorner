@@ -1,0 +1,286 @@
+//////////////////bubblesort//////////////////////
+
+void BubbleSort(int *array, size_t size)
+{
+	assert(NULL != array);
+	if(size < 2)
+		return;
+	cout << "bubble sort: ";
+	for (size_t i = 0; i < size -1; i++)
+	{
+		for (size_t j = 0; j < size-1-i; j++)
+		{
+			if (array[j] > array[j+1])
+			{
+				int tmp = array[j];
+				array[j] = array[j+1];
+				array[j+1] = tmp;
+			}
+		}
+	}
+}
+
+//////////////////selectsort////////////////
+
+void SelectSort(int *array, size_t size)
+{
+	assert(NULL != array);
+	if(size < 2)
+		return;
+	for (size_t i = 0; i < size-1; i++)
+	{
+		size_t key = i;
+		for (size_t j = i+1; j < size; j++)
+		{
+			if (array[j] < array[key])
+				key = j;
+		}
+		if (key != i)
+			swap(array[i], array[key]);
+	}
+}
+
+//////////////////insertsort/////////////////////
+
+void InsertSort(int *array, size_t size)
+{
+	assert(NULL != array);
+	if(size < 2)
+		return;
+	cout << "insert sort: ";
+	for (size_t i = 1; i < size; i++)
+	{
+		size_t j = i;
+		while(j >= 1 && array[j-1] > array[j])
+		{
+			swap(array[j-1], array[j]);
+			j--;
+		}
+	}
+}
+
+/////////////////heapsort/////////////////////
+#ifndef __HEAPSORT_H__
+#define __HEAPSORT_H__
+
+void DownAdjust(int *array, size_t size, size_t parent)
+{
+	assert(NULL != array);
+	if (size<2 || 2*parent+1>=size)
+		return;
+	size_t child = 2*parent+1;	
+	if (child + 1 < size)
+		child = array[child] > array[child+1] ? child : child + 1;
+	while(child < size && array[child] > array[parent])
+	{
+		swap(array[child], array[parent]);
+		parent = child;
+		child = 2 * parent + 1;
+		if (child + 1 < size)
+			child = array[child] > array[child+1] ? child : child + 1;
+	}
+}
+
+void HeapSort(int *array, size_t size)
+{
+	assert(NULL != array);
+	if (size < 2)
+		return;
+	for (int i = (size-2)>>1; i >=0; i--)
+	{
+		DownAdjust(array, size, i);
+	}
+	while(size)
+	{
+		swap(array[0], array[size-1]);
+		size--;
+		DownAdjust(array, size, 0);
+	}
+}
+
+/////////////////quicksort////////////////
+
+int GetKey(int *array, size_t left, size_t right)
+{
+	assert(NULL != array);
+	assert(left < right);
+	if(right-left <2)
+		return array[left];
+	size_t buf[3] = {left, left+((right-left)>>1), right-1};
+	for(size_t i = 0; i < 2; i++)
+	{
+		for(size_t j = 0; j < 2-i; j++)
+		{
+			if(array[buf[j]] > array[buf[j+1]])
+				swap(buf[j], buf[j+1]);
+		}
+	}
+	if(buf[1] != right-1)
+		swap(array[buf[1]], array[right-1]);
+	return array[right-1];
+}
+
+size_t partregion(int *array, size_t left, size_t right)
+{
+	assert(NULL != array);
+	assert(left <= right);
+	if(right-left <2)
+		return left;
+	int key = GetKey(array, left, right);
+	size_t front = left;
+	size_t end = right-1;
+	while(front < end)
+	{
+		while(front<end && array[front]<key)
+			front++;
+		while(front<end && array[end]>=key)
+			end--;
+		if(front < end)
+			swap(array[front], array[end]);
+	}
+	if(front != right-1)
+		swap(array[front], array[right-1]);
+	return front;
+}
+
+size_t partregion2(int *array, size_t left, size_t right)
+{
+	assert(NULL != array);
+	assert(left <= right);
+	if(right - left < 2)
+		return left;
+	int key = GetKey(array, left, right);
+	size_t front = left;
+	size_t end = right - 1;
+	while(front < end)
+	{
+		while(front<end && array[front]<key)
+			front++;
+		if(front < end)
+			array[end] = array[front];
+		while(front<end && array[end]>key)
+			end--;
+		if(front < end)
+			array[front] = array[end];
+	}
+	array[front] = key;
+	return front;
+}
+
+size_t partregion3(int *array, int left, int right)
+{
+	assert(NULL != array);
+	assert(left <= right);
+	if(right - left < 2)
+		return left;
+	int front = left-1;
+	int end = left;
+	int key = GetKey(array, left, right);
+	while(end < right)
+	{
+		if(array[end] < key)
+			end++;
+		front++;
+		if(front == end)
+		{
+			while(end < right)
+			{
+				while(end < right && array[end]>key)
+					end++;
+				if(front<end && end<right)
+					swap(array[front++], array[end]);
+				else
+					end++;
+			}
+		}
+	}
+	return front-1;
+}
+
+void QuickSort(int *array, size_t left, size_t right)
+{
+	assert(NULL != array);
+	assert(left <= right);
+	if(right - left < 2)
+		return;
+	size_t mid = partregion3(array, left, right);
+	if(left != mid)
+		QuickSort(array, left, mid);
+	if(mid+1 != right)
+		QuickSort(array, mid+1, right);
+}
+
+/////////////////////////shellsort////////////////////
+
+void ShellSort(int *array, size_t size)
+{
+	assert(NULL != array);
+	if(size < 2)
+		return;
+	size_t gap = 0;
+	while(3*gap+1 < size)
+		gap = 3*gap+1;
+	while(gap)
+	{
+		for(size_t i = 0; i < gap; i++)
+		{
+			size_t j = i + gap;
+			while(j < size)
+			{
+				size_t n = j;
+				while(n>=gap && array[n-gap]>array[n])
+				{
+					swap(array[n-gap], array[n]);
+					n -= gap;
+				}
+				j += gap;
+			}
+		}
+		gap /= 3;
+	}
+}
+
+//////////////////////////////////merger/////////////////////
+
+void Merger(int *array, size_t left, size_t mid, size_t right)
+{
+	assert(NULL != array);
+	assert(left<=mid && mid<=right);
+	if(mid-left<1 || right-mid<1)
+		return;
+	int *buf = new int[right-left];
+	size_t front = left;
+	size_t end = mid;
+	size_t index = 0;
+	while(front<mid && end<right)
+	{
+		if(array[front] < array[end])
+			buf[index++] = array[front++];
+		else
+			buf[index++] = array[end++];
+	}
+	if(front < mid)
+		while(front < mid)
+			buf[index++] = array[front++];
+	if(end < right)
+		while(end < right)
+			buf[index++] = array[end++];
+	for(size_t i = 0; i < right-left; i++)
+		array[left+i] = buf[i];
+	delete[] buf;
+}
+
+void MergerSort(int *array, size_t left, size_t right)
+{
+	assert(NULL != array);
+	assert(left <= right);
+	if(right - left < 2)
+		return;
+	size_t mid = left + ((right-left)>>1);
+	if(mid != left)
+		MergerSort(array, left, mid);
+	if(mid != right)
+		MergerSort(array, mid, right);
+	Merger(array, left, mid, right);
+}
+
