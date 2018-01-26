@@ -1,0 +1,159 @@
+#include <stdio.h>
+#include <assert.h>
+#include <stdlib.h>
+#include <stdbool.h>
+typedef struct ListNode
+{
+	int _data;
+	struct ListNode* _next;
+}Node, *pNode;
+
+void InitList(pNode* pphead)
+{
+	assert(NULL != pphead);
+	*pphead = NULL;
+}
+
+void Insert(pNode* pphead, const int data)
+{
+	assert(NULL != pphead);
+	pNode pnewnode = (pNode)malloc(sizeof(Node));
+	if(NULL == pnewnode)
+	{
+		perror("malloc");
+		exit(1);
+	}
+	pnewnode->_data = data;
+	pnewnode->_next = NULL;
+	pNode pCur = *pphead;
+	if(NULL == pCur)
+		*pphead = pnewnode;
+	else
+	{
+		while(NULL != pCur->_next)
+			pCur = pCur->_next;
+		pCur->_next = pnewnode;
+	}
+}
+
+void Print(const pNode head)
+{
+	if(NULL == head)
+		return;
+	pNode pCur = (pNode)head;
+	while(pCur)
+	{
+		printf("->%d", pCur->_data);
+		pCur = pCur->_next;
+	}
+	putchar('\n');
+}
+
+pNode Merger(pNode* pphead1, pNode* pphead2)
+{
+	assert(NULL != pphead1);
+	assert(NULL != pphead2);
+	if(NULL == *pphead1 && NULL == *pphead2)
+		return NULL;
+	pNode pret = NULL;
+	if(*pphead1 && *pphead2)
+	{
+		pNode* ppPre = &pret;
+		pNode pCur1 = *pphead1;
+		pNode pCur2 = *pphead2;
+		while(pCur1 && pCur2)
+		{
+			if(pCur1->_data < pCur2->_data)
+			{
+				*ppPre = pCur1;
+				pCur1 = pCur1->_next;
+			}
+			else
+			{
+				*ppPre = pCur2;
+				pCur2 = pCur2->_next;
+			}
+			ppPre = &((*ppPre)->_next);
+		}
+		if(pCur1)
+			*ppPre = pCur1;
+		else
+			*ppPre = pCur2;
+	}
+	else if(*pphead1)
+		pret = *pphead1;
+	else
+		pret = *pphead2;
+	return pret;
+}
+
+pNode Reversal(pNode *pphead)
+{
+	assert(NULL != pphead);
+	if(NULL == *pphead || NULL == (*pphead)->_next)
+		return *pphead;
+	pNode tmp = (*pphead)->_next;
+	pNode pCur = *pphead;
+	*pphead = NULL;
+	while(pCur)
+	{
+		pCur->_next = *pphead;
+		*pphead = pCur;
+		pCur = tmp;
+		if(NULL != tmp)
+			tmp = tmp->_next;
+	}
+	return *pphead;
+}
+
+bool FindKNode(const pNode phead, int k)
+{
+	if(NULL == phead)
+		return false;
+	pNode pPre = (pNode)phead;
+	pNode pLast = (pNode)phead;
+	while(pPre && k--)
+		pPre = pPre->_next;
+	if(k >= 0)
+		return false;
+	while(pPre)
+	{
+		pPre = pPre->_next;
+		pLast = pLast->_next;
+	}
+	printf("->%d\n", pLast->_data);
+	return true;
+}
+
+void test1(void)
+{
+	int arr1[] = { 2, 4, 7, 8, 9 };
+	int arr2[] = { 0, 1, 3, 5, 6, 10 };
+	pNode phead1;
+	InitList(&phead1);
+	size_t size1 = sizeof(arr1)/sizeof(arr1[0]);
+	for(size_t i = 0; i < size1; i++)
+		Insert(&phead1, arr1[i]);
+	pNode phead2;
+	InitList(&phead2);
+	size_t size2 = sizeof(arr2)/sizeof(arr2[0]);
+	for(size_t i = 0; i < size2; i++)
+		Insert(&phead2, arr2[i]);
+	Print(phead1);
+	Print(phead2);
+	pNode head = Merger(&phead1, &phead2);
+	Print(head);
+	Reversal(&head);
+	Print(head);
+	if(FindKNode(head, 5))
+		printf("yes\n");
+	else
+		printf("no\n");
+}
+
+int main()
+{
+	test1();
+
+	return 0;
+}
