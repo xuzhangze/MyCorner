@@ -1,0 +1,67 @@
+#include <stdio.h>
+
+int add(int left, int right)
+{
+	int sum = 0;
+	int cf = 0;
+	for(int i = 0; i < 32; i++)
+	{
+		int bit = 0;
+		int leftbit = (left>>i)&1;
+		int rightbit = (right>>i)&1;
+		if(leftbit == 1 && rightbit == 1)
+		{
+			if(cf == 0)
+			{
+				cf = 1;
+				bit = 0;
+			}
+			else
+			{
+				cf = 1;
+				bit =1;
+			}
+		}
+		else if(leftbit+rightbit == 1)
+		{
+			if(cf == 0)
+			{
+				cf = 0;
+				bit = 1;
+			}
+			else
+			{
+				cf = 1;
+				bit = 0;
+			}
+		}
+		else
+		{
+			if(cf == 0)
+			{
+				cf = 0;
+				bit = 0;
+			}
+			else
+			{
+				cf = 0;
+				bit = 1;
+			}
+		}
+		sum |= (bit<<i);
+	}
+	return sum;
+}
+
+
+int main()
+{
+	int left = 0;
+	int right = 0;
+	printf("input left and right:>");
+	scanf("%d%d", &left, &right);
+
+	printf("sum = %d\n", add(left, right));
+
+	return 0;
+}
