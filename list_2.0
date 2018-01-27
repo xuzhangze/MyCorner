@@ -1,0 +1,288 @@
+#include <stdio.h>
+#include <assert.h>
+#include <stdlib.h>
+#include <stdbool.h>
+typedef struct ListNode
+{
+	int _data;
+	struct ListNode* _next;
+}Node, *pNode;
+
+void InitList(pNode* pphead)
+{
+	assert(NULL != pphead);
+	*pphead = NULL;
+}
+
+void Insert(pNode* pphead, const int data)
+{
+	assert(NULL != pphead);
+	pNode pnewnode = (pNode)malloc(sizeof(Node));
+	if(NULL == pnewnode)
+	{
+		perror("malloc");
+		exit(1);
+	}
+	pnewnode->_data = data;
+	pnewnode->_next = NULL;
+	pNode pCur = *pphead;
+	if(NULL == pCur)
+		*pphead = pnewnode;
+	else
+	{
+		while(NULL != pCur->_next)
+			pCur = pCur->_next;
+		pCur->_next = pnewnode;
+	}
+}
+
+void Print(const pNode head)
+{
+	if(NULL == head)
+		return;
+	pNode pCur = (pNode)head;
+	while(pCur)
+	{
+		printf("->%d", pCur->_data);
+		pCur = pCur->_next;
+	}
+	putchar('\n');
+}
+
+pNode Merger(pNode* pphead1, pNode* pphead2)
+{
+	assert(NULL != pphead1);
+	assert(NULL != pphead2);
+	if(NULL == *pphead1 && NULL == *pphead2)
+		return NULL;
+	pNode pret = NULL;
+	if(*pphead1 && *pphead2)
+	{
+		pNode* ppPre = &pret;
+		pNode pCur1 = *pphead1;
+		pNode pCur2 = *pphead2;
+		while(pCur1 && pCur2)
+		{
+			if(pCur1->_data < pCur2->_data)
+			{
+				*ppPre = pCur1;
+				pCur1 = pCur1->_next;
+			}
+			else
+			{
+				*ppPre = pCur2;
+				pCur2 = pCur2->_next;
+			}
+			ppPre = &((*ppPre)->_next);
+		}
+		if(pCur1)
+			*ppPre = pCur1;
+		else
+			*ppPre = pCur2;
+	}
+	else if(*pphead1)
+		pret = *pphead1;
+	else
+		pret = *pphead2;
+	return pret;
+}
+
+pNode Reversal(pNode *pphead)
+{
+	assert(NULL != pphead);
+	if(NULL == *pphead || NULL == (*pphead)->_next)
+		return *pphead;
+	pNode tmp = (*pphead)->_next;
+	pNode pCur = *pphead;
+	*pphead = NULL;
+	while(pCur)
+	{
+		pCur->_next = *pphead;
+		*pphead = pCur;
+		pCur = tmp;
+		if(NULL != tmp)
+			tmp = tmp->_next;
+	}
+	return *pphead;
+}
+
+bool FindKNode(const pNode phead, int k)
+{
+	if(NULL == phead)
+		return false;
+	pNode pPre = (pNode)phead;
+	pNode pLast = (pNode)phead;
+	while(pPre && k--)
+		pPre = pPre->_next;
+	if(k >= 0)
+		return false;
+	while(pPre)
+	{
+		pPre = pPre->_next;
+		pLast = pLast->_next;
+	}
+	printf("->%d\n", pLast->_data);
+	return true;
+}
+
+void DelNode(pNode* pphead, int data)
+{
+	assert(NULL != pphead);
+	if(NULL == *pphead)
+		return;
+	pNode pCur = *pphead;
+	pNode* ppPre = pphead;
+	while(pCur)
+	{
+		if(pCur->_data == data)
+			break;
+		ppPre = &(pCur->_next);
+		pCur = pCur->_next;
+	}
+	if(pCur)
+	{
+		*ppPre = pCur->_next;
+		free(pCur);
+	}
+}
+
+void RevPrint(const pNode phead)
+{
+	if(NULL == phead)
+		return;
+	RevPrint(phead->_next);
+	printf("->%d", phead->_data);
+}
+/*
+#include <stack>
+void RevPrint_Nor(const pNode phead)
+{
+	if(NULL == phead)
+		return;
+	stack<int> liststack;
+	pNode pCur = (pNode)phead;
+	while(pCur)
+	{
+		liststack.push(pCur->_data);
+		pCur = pCur->_next;
+	}
+	while(!liststack.empty())
+	{
+		printf("->%d", liststack.top());
+		liststack.pop();
+	}
+	putchar('\n');
+}
+*/
+
+pNode FindNode(const pNode phead, int data)
+{
+	if(NULL == phead)
+		return NULL;
+	pNode pCur = (pNode)phead;
+	while(pCur && data!=pCur->_data)
+		pCur = pCur->_next;
+	if(pCur)
+		return pCur;
+	return NULL;
+}
+
+pNode JudgeLoop(const pNode phead)
+{
+	if(NULL == phead)
+		return NULL;
+	pNode quick = phead->_next;
+	pNode slow = (pNode)phead;
+	while(quick && quick->_next && quick!=slow)
+	{
+		quick = quick->_next->_next;
+		slow = slow->_next;
+	}
+	if(quick == slow)
+		return quick;
+	return NULL;
+}
+
+int ListLength(const pNode point)
+{
+	if(NULL == point)
+		return 0;
+	pNode pCur = (pNode)point->_next;
+	int len = 1;
+	while(pCur != point)
+	{
+		len++;
+		pCur = pCur->_next;
+	}
+	return len;
+}
+
+pNode Entrance(const pNode phead, const pNode point)
+{
+	if(NULL == phead || NULL == point)
+		return NULL;
+	pNode pCur1 = point->_next;
+	pNode pCur2 = (pNode)phead;
+	while(pCur1 && pCur2 && pCur1!=pCur2)
+	{
+		pCur1 = pCur1->_next;
+		pCur2 = pCur2->_next;
+	}
+	if(pCur1 == pCur2)
+		return pCur1;
+	return NULL;
+}
+
+void test1(void)
+{
+	int arr1[] = { 2, 4, 7, 8, 9 };
+	int arr2[] = { 0, 1, 3, 5, 6, 10 };
+	pNode phead1;
+	InitList(&phead1);
+	size_t size1 = sizeof(arr1)/sizeof(arr1[0]);
+	for(size_t i = 0; i < size1; i++)
+		Insert(&phead1, arr1[i]);
+	pNode phead2;
+	InitList(&phead2);
+	size_t size2 = sizeof(arr2)/sizeof(arr2[0]);
+	for(size_t i = 0; i < size2; i++)
+		Insert(&phead2, arr2[i]);
+	Print(phead1);
+	Print(phead2);
+	pNode head = Merger(&phead1, &phead2);
+	Print(head);
+/*
+	//Reversal(&head);
+	//Print(head);
+	if(FindKNode(head, 5))
+		printf("yes\n");
+	else
+		printf("no\n");
+	//DelNode(&head, 6);
+	//Print(head);
+	//RevPrint(head);
+	//putchar('\n');
+*/
+	pNode pret1 = FindNode(head, 10);
+	pNode pret2 = FindNode(head, 7);
+	pret1->_next = pret2;
+
+	pNode point = JudgeLoop(head);
+	if(point)
+	{
+		printf("yes\n");
+		printf("lenght = %d\n", ListLength(point));
+		pNode entrance = Entrance(head, point);
+		printf("entrance->%d\n", entrance->_data);
+	}
+	else
+		printf("no\n");
+
+}
+
+int main()
+{
+	test1();
+
+	return 0;
+}
