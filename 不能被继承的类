@@ -1,0 +1,41 @@
+#include <iostream>
+using namespace std;
+
+class SealedClass
+{
+private:
+	SealedClass(int data)
+		: _data(data)
+	{}
+	~SealedClass()
+	{}
+public:
+	static SealedClass* GetSealed(int data)
+	{
+		SealedClass *psc = new SealedClass(data);
+		return psc;
+	}
+	static SealedClass* DelSealed(SealedClass* ps)
+	{
+		if(ps)
+			delete ps;
+	}
+	int _data;
+};
+
+void test()
+{
+	int number = 0;
+	cout << "please input:>";
+	cin >> number;
+	SealedClass* ps = SealedClass::GetSealed(number);
+	cout << ps->_data << endl;
+	SealedClass:: DelSealed(ps);
+}
+
+int main()
+{
+	test();
+
+	return 0;
+}
