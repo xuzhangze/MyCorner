@@ -1,0 +1,71 @@
+#include <iostream>
+using namespace std;
+
+
+int sum1(int n)
+{
+	if(n < 1)
+		return 0;
+	return n + sum1(n-1);
+}
+
+int sum2(int n)
+{
+	int ans = n;
+	ans && (ans += sum2(n-1));
+	return ans;
+}
+
+int sum3(int n)
+{
+	char arr[n][n+1];
+	return (sizeof(arr))>>1;
+}
+
+void test1()
+{
+	int n = 0;
+	cout << "Please input N:>";
+	cin >> n;
+	cout << "sum = " << sum3(n) << endl;
+}
+
+class Sum
+{
+public:
+	Sum()
+	{
+		n++;
+		sum += n;
+	}
+	static int GetSum()
+	{
+		return sum;
+	}
+private:
+	static int n;
+	static int sum;
+};
+int Sum::n = 0;
+int Sum::sum = 0;
+
+int sum4(int n)
+{
+	Sum s[n];
+	return Sum::GetSum();
+}
+
+void test2()
+{
+	int n = 0;
+	cout << "please input n:>";
+	cin >> n;
+	cout << "sum = " << sum4(n) << endl;
+}
+
+int main()
+{
+	test2();
+
+	return 0;
+}
