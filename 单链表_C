@@ -1,0 +1,457 @@
+.h文件
+#pragma once
+
+#include <stdio.h>
+
+#include <stdlib.h>
+#include <assert.h>
+
+typedef int NewType;
+typedef struct Node
+{
+	NewType _data;
+	struct Node *_pNext;
+}Node,*pNode,*pHead,**ppHead;
+
+void InitNode(ppHead pphead);
+
+void PushFrond(ppHead pphead, NewType data);
+void _PushFrond(pHead phead, NewType data);
+
+void PushBack(ppHead pphead, NewType data);
+void _PushBack(pHead phead, NewType data);
+
+pNode Find(pHead phead, NewType data);
+pNode _Find(pHead phead, NewType data);
+
+int ListLength(pHead phead);
+int _ListLength(pHead phead);
+
+void InsList(ppHead pphead, NewType data, NewType newdata);
+void _InsList(pHead phead, NewType data, NewType newdata);
+
+void DelList(ppHead pphead, NewType data);
+void _DelList(pHead phead, NewType data);
+
+void Reverse(ppHead pphead);
+void _Reverse(pHead phead);
+
+pHead Add(ppHead pphead1, ppHead pphead2);
+pHead _Add(pHead phead1, pHead phead2);
+
+void Print(pHead phead);
+
+void Destroy(ppHead pphead);
+
+#define _CRT_SECURE_NO_WARNINGS
+
+#include "LinkList.h"
+
+void InitNode(ppHead pphead)
+{
+	assert(pphead != NULL);
+	*pphead = (pNode)malloc(sizeof(Node));
+	if (*pphead == NULL)
+	{
+		perror("malloc");
+		return;
+	}
+	(*pphead)->_pNext = NULL;
+}
+
+void PushFrond(ppHead pphead, NewType data)
+{
+	pNode cur = *pphead;
+	pNode pTmp = NULL;
+	assert(pphead != NULL);
+	pTmp = (pNode)malloc(sizeof(Node));
+	if (pTmp == NULL)
+	{
+		perror("malloc");
+		return;
+	}
+	*pphead = pTmp;
+	(*pphead)->_pNext = cur;
+	(*pphead)->_data = data;
+}
+
+void _PushFrond(pHead phead, NewType data)
+{
+	pNode cur = phead->_pNext;
+	pNode pTmp = NULL;
+	assert(phead != NULL);
+    pTmp = (pNode)malloc(sizeof(Node));
+	if (pTmp == NULL)
+	{
+		perror("malloc");
+		return;
+	}
+	pTmp->_data = data;
+	pTmp->_pNext = cur;
+	phead->_pNext = pTmp;
+}
+
+void PushBack(ppHead pphead, NewType data)
+{
+	pNode cur = *pphead;
+	assert(pphead != NULL);
+	if (*pphead == NULL)
+	{
+		pNode pTmp = (pNode)malloc(sizeof(Node));
+		if (pTmp == NULL)
+		{
+			perror("malloc");
+			return;
+		}
+		*pphead = pTmp;
+		(*pphead)->_pNext = NULL;
+		(*pphead)->_data = data;
+	}
+	else
+	{
+		pNode pTmp = (pNode)malloc(sizeof(Node));
+		if (pTmp == NULL)
+		{
+			perror("malloc");
+			return;
+		}
+		pTmp->_data = data;
+		pTmp->_pNext = NULL;
+		while (cur->_pNext)
+		{
+			cur = cur->_pNext;
+		}
+		cur->_pNext = pTmp;
+	}
+}
+
+void _PushBack(pHead phead, NewType data)
+{
+	pNode cur = phead;
+	pNode pTmp = NULL;
+	assert(phead != NULL);
+	pTmp = (pNode)malloc(sizeof(Node));
+	if (pTmp != NULL)
+	{
+		pTmp->_data = data;
+		pTmp->_pNext = NULL;
+		while (cur->_pNext != NULL)
+		{
+			cur = cur->_pNext;
+		}
+		cur->_pNext = pTmp;
+	}
+	//if (pTmp == NULL)
+	//{
+	//	perror("malloc");
+	//	return;
+	//}
+	//pTmp->_data = data;
+	//pTmp->_pNext = NULL;
+	//while (cur->_pNext != NULL)
+	//{
+	//	cur = cur->_pNext;
+	//}
+	//cur->_pNext = pTmp;
+}
+
+pNode Find(pHead phead, NewType data)
+{
+	if (phead != NULL)
+	{
+		pNode cur = phead;
+		while ((cur->_data != data) && (cur != NULL))
+		{
+			cur = cur->_pNext;
+		}
+		return cur;
+	}
+	else
+		return NULL;
+}
+
+pNode _Find(pHead phead, NewType data)
+{
+	if ((phead != NULL)&&(phead->_pNext != NULL))
+	{
+		pNode cur = phead->_pNext;
+		while ((cur->_data != data) && (cur != NULL))
+		{
+			cur = cur->_pNext;
+		}
+		return cur;
+	}
+	else
+		return NULL;
+}
+
+int ListLength(pHead phead)
+{
+	pNode cur = phead;
+	int count = 0;
+	if (phead != NULL)
+	{
+		while (cur != NULL)
+		{
+			count++;
+			cur = cur->_pNext;
+		}
+	}
+	return count;
+}
+
+int _ListLength(pHead phead)
+{
+	int count = 0;
+	if (phead)
+	{
+		pNode cur = phead->_pNext;
+		if (cur != NULL)
+		{
+			while (cur != NULL)
+			{
+				count++;
+				cur = cur->_pNext;
+			}
+		}
+	}
+	return count;
+}
+
+void InsList(ppHead pphead, NewType data, NewType newdata)
+{
+	pNode cur = *pphead;
+	assert(pphead != NULL);
+	if (cur)
+	{
+		while ((cur->_data != data) && (cur != NULL))
+		{
+			cur = cur->_pNext;
+		}
+		if (cur)
+		{
+			pNode pTmp = (pNode)malloc(sizeof(Node));
+			if (pTmp)
+			{
+				pTmp->_data = cur->_data;
+				pTmp->_pNext = cur->_pNext;
+				cur->_pNext = pTmp;
+				cur->_data = newdata;
+			}
+		}
+	}
+}
+
+void _InsList(pHead phead, NewType data, NewType newdata)
+{
+	if (phead && phead->_pNext)
+	{
+		pNode cur = phead->_pNext;
+		while ((cur->_data != data) && (cur != NULL))
+		{
+			cur = cur->_pNext;
+		}
+		if (cur)
+		{
+			pNode pTmp = (pNode)malloc(sizeof(Node));
+			if (pTmp)
+			{
+				pTmp->_data = cur->_data;
+				pTmp->_pNext = cur->_pNext;
+				cur->_data = newdata;
+				cur->_pNext = pTmp;
+			}
+		}
+	}
+}
+
+void DelList(ppHead pphead, NewType data)
+{
+	assert(pphead != NULL);
+	if (*pphead)
+	{
+		pNode cur = *pphead;
+		pNode slow = *pphead;
+		while ((cur->_data != data) && (cur != NULL))
+		{
+			slow = cur;
+			cur = cur->_pNext;
+		}
+		if (cur)
+		{
+			if (*pphead == cur)
+			{
+				*pphead = cur->_pNext;
+				free(cur);
+			}
+			else
+			{
+				slow->_pNext = cur->_pNext;
+				free(slow);
+			}
+		}
+	}
+}
+
+void _DelList(pHead phead, NewType data)
+{
+	if (phead&&phead->_pNext)
+	{
+		pNode cur = phead->_pNext;
+		pNode slow = phead;
+		while ((cur->_data != data) && (cur != NULL))
+		{
+			slow = cur;
+			cur = cur->_pNext;
+		}
+		if (cur)
+		{
+			slow->_pNext = cur->_pNext;
+			free(cur);
+		}
+	}
+}
+
+void Reverse(ppHead pphead)
+{
+	assert(pphead != NULL);
+	if (*pphead && (*pphead)->_pNext)
+	{
+		pNode cur = NULL;
+		pNode slow = (*pphead)->_pNext;
+		(*pphead)->_pNext = NULL;
+		while(slow != NULL)
+		{
+			cur = slow->_pNext;
+			slow->_pNext = *pphead;
+			*(pphead) = slow;
+			slow = cur;
+		}
+	}
+}
+
+void _Reverse(pHead phead)
+{
+	assert(phead != NULL);
+	if (phead->_pNext&&phead->_pNext->_pNext)
+	{
+		pNode cur = NULL;
+		pNode slow = phead->_pNext->_pNext;
+		phead->_pNext = NULL;
+		while (slow != NULL)
+		{
+			cur = slow->_pNext;
+			slow->_pNext = phead->_pNext;
+			phead->_pNext = slow;
+			slow = cur;
+		}
+	}
+}
+
+pHead Add(ppHead pphead1, ppHead pphead2)
+{
+	assert(pphead1 != NULL&&pphead2 != NULL);
+	if (*pphead1&&*pphead2)
+	{
+		pNode cur1 = *pphead1;
+		pNode cur2 = *pphead2;
+		pNode *pptmp = pphead1;
+		while (cur1&&cur2)
+		{
+			if (cur1->_data <= cur2->_data)
+			{
+				*pptmp = cur1;
+				cur1 = cur1->_pNext;
+			}
+			else
+			{
+				if (*pptmp == *pphead1)
+				{
+					*pptmp = cur2;
+					cur2 = cur2->_pNext;
+					(*pptmp)->_pNext = cur1;
+				}
+				else
+				{
+					(*pptmp)->_pNext = cur2;
+					cur2 = cur2->_pNext;
+					*pptmp = (*pptmp)->_pNext;
+					(*pptmp)->_pNext = cur1;
+				}
+			}
+		}
+		if (!cur1)
+		{
+			(*pptmp)->_pNext = cur2;
+		}
+	}
+	else if (*pphead2)
+	{
+		return *pphead2;
+	}
+	return *pphead1;
+}
+
+pHead _Add(pHead phead1, pHead phead2)
+{
+	assert((phead1 != NULL)&&(phead2 != NULL));
+	if (phead1->_pNext&&phead2->_pNext)
+	{
+		pNode cur1 = phead1->_pNext;
+		pNode cur2 = phead2->_pNext;
+		pNode ptmp = phead1;
+		while (cur1&&cur2)
+		{
+			if (cur1->_data <= cur2->_data)
+			{
+				ptmp = cur1;
+				cur1 = cur1->_pNext;
+			}
+			else
+			{
+				ptmp->_pNext = cur2;
+				cur2 = cur2->_pNext;
+				ptmp->_pNext->_pNext = cur1;
+				ptmp = ptmp->_pNext;
+			}
+		}
+		if (!cur1)
+		{
+			ptmp->_pNext = cur2;
+		}
+	}
+	else if (phead2->_pNext)
+	{
+		return phead2;
+	}
+	return phead1;
+}
+
+void Print(pHead phead)
+{
+	if (phead)
+	{
+		pNode cur = phead;
+		while (cur)
+		{
+			printf("%d ", cur->_data);
+			cur = cur->_pNext;
+		}
+		putchar('\n');
+	}
+}
+
+void Destroy(ppHead pphead)
+{
+	assert(pphead != NULL);
+	if (*pphead)
+	{
+		pNode cur = *pphead;
+		while (cur)
+		{
+			*pphead = (*pphead)->_pNext;
+			free(cur);
+			cur = *pphead;
+		}
+	}
+}
