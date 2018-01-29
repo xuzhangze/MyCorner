@@ -1,0 +1,177 @@
+.h
+#pragma once
+
+
+#include <iostream>
+using namespace std;
+#include <cassert>
+
+typedef int NewType;
+struct Node
+{
+	Node(NewType _data = 0)
+		:data(_data)
+		,pNext(NULL)
+		,pPre(NULL)
+	{
+		data = _data;
+	}
+	NewType data;
+	Node *pNext;
+	Node *pPre;
+};
+
+class List
+{
+public:
+	List();
+	List(const NewType *array, size_t size);
+	~List();
+	void PushBack(NewType data);
+	void PopBack();
+	void PushFrond(NewType data);
+	void PopFrond();
+	Node* Find(const Node *pos);
+	void Erase(Node *pos);
+	void Insert(Node *pos, NewType data);
+private:
+	Node *pHead;
+};
+
+
+.cpp
+#define CRT_SECURE_NO_WARNINGS
+
+#include "LinkList.h"
+
+List::List()
+	:pHead(NULL)
+{}
+
+List::List(const NewType *array, size_t size)
+	:pHead(NULL)
+{
+	for (int i = 0; i < (int)size; i++)
+		PushBack(*(NewType*)(array + i));
+}
+
+void List::PushBack(NewType data)
+{
+	if (pHead == NULL)
+	{
+		pHead = new Node(data);
+		pHead->pNext = pHead;
+		pHead->pPre = pHead;
+	}
+	else
+	{
+		pHead->pPre->pNext = new Node(data);
+		pHead->pPre->pNext->pPre = pHead->pPre;
+		pHead->pPre->pNext->pNext = pHead;
+		pHead->pPre = pHead->pPre->pNext;
+	}
+}
+
+List::~List()
+{
+	if (pHead)
+	{
+		Node *cur = pHead->pNext;
+		pHead->pPre->pNext = NULL;
+		while (cur != NULL)
+		{
+			delete pHead;
+			pHead = cur;
+			cur = cur->pNext;
+		}
+		delete pHead;
+		pHead = NULL;
+	}
+}
+
+void List::PopBack()
+{
+	if (pHead)
+	{
+		pHead->pPre = pHead->pPre->pPre;
+		delete pHead->pPre->pNext;
+		pHead->pPre->pNext = pHead;
+
+		//Node *tmp = pHead->pPre->pPre;
+		//delete pHead->pPre;
+		//pHead->pPre = tmp;
+		//tmp->pNext = pHead;
+	}
+}
+
+void List::PushFrond(NewType data)
+{
+	if (pHead == NULL)
+	{
+		pHead = new Node(data);
+		pHead->pNext = pHead;
+		pHead->pPre = pHead;
+	}
+	else
+	{
+		Node *ptmp = pHead;
+		pHead = new Node(data);
+		pHead->pNext = ptmp;
+		pHead->pPre = ptmp->pPre;
+		pHead->pPre->pNext = pHead;
+		ptmp->pPre = pHead;
+	}
+}
+
+void List::PopFrond()
+{
+	if (pHead)
+	{
+		Node *ptmp = pHead->pNext;
+		ptmp->pPre = pHead->pPre;
+		pHead->pPre->pNext = ptmp;
+		delete pHead;
+		pHead = ptmp;
+	}
+}
+
+Node* List::Find(const Node *pos)
+{
+	assert(pos != NULL);
+	if (pHead == NULL)
+		return NULL;
+	Node *cur = pHead->pNext;
+	while (cur != pHead)
+	{
+		if (cur->data == pos->data)
+			return cur;
+		cur = cur->pNext;
+	}
+	if (cur->data == pos->data)
+		return cur;
+	return NULL;
+}
+
+void List::Erase(Node *pos)
+{
+	assert(pos != NULL);
+	Node *ptmp = Find(pos);
+	if (ptmp == NULL)
+		return;
+	ptmp->pNext->pPre = ptmp->pPre;
+	ptmp->pPre->pNext = ptmp->pNext;
+	delete ptmp;
+}
+
+void List::Insert(Node *pos, NewType data)
+{
+	assert(pos != NULL);
+	Node *pret = Find(pos);
+	if (pret == NULL)
+		return;
+	Node *ptmp = new Node(data);
+	pret->pPre->pNext = ptmp;
+	ptmp->pNext = pret;
+	ptmp->pPre = pret->pPre;
+	pret->pPre = ptmp;
+}
