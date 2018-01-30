@@ -1,0 +1,336 @@
+#include <iostream>
+using namespace std;
+#include <cassert>
+
+template<typename T>
+struct ListNode
+{
+	ListNode(const T& data = T())
+		: _pPre(0)
+		, _pNext(0)
+		, _data(data)
+	{}
+
+	ListNode* _pPre;
+	ListNode* _pNext;
+	T _data;
+};
+
+template<class T, class Ref, class Ptr>
+class ListIterator
+{
+	typedef ListIterator<T, Ref, Ptr> Self;
+public:
+	ListIterator()
+		: _pCur(0)
+	{}
+
+	ListIterator(ListIterator<T, Ref, Ptr>* pCur)
+		: _pCur(pCur)
+	{}
+
+	ListIterator(const Self& s)
+		: _pCur(s._pCur)
+	{}
+
+	Ref operator*()
+	{
+		return _pCur->_data;
+	}
+
+	Ptr operator->()
+	{
+		return &(operator*());
+		//return &(_pCur->_data); 
+	}
+
+	Self& operator++()
+	{
+		_pCur = _pCur->_pNext;
+		return *this;
+	}
+
+	Self operator++(int)
+	{
+		Self temp(*this);
+		_pCur = _pCur->_pNext;
+		return temp;
+	}
+
+	Self& operator--()
+	{
+		_pCur = _pCur->_pPre;
+		return*this;
+	}
+
+	Self operator--(int)
+	{
+		Self temp(*this);
+		_pCur = _pCur->_pPre;
+		return temp;
+	}
+
+	bool operator!=(const Self& s)
+	{
+		return _pCur != s._pCur;
+	}
+
+	bool operator==(const Self& s)
+	{
+		return _pCur == s._pCur;
+	}
+
+	ListNode<T>* _pCur;
+};
+
+template<typename T>
+class List
+{
+public:
+	typedef ListIterator<T, T&, T*> Iterator;
+	typedef ListNode<T> Node;
+public:
+	List()
+		: _pHead(new Node)
+	{
+		_pHead->_pNext = _pHead;
+		_pHead->_pPre = _pHead;
+	}
+
+	// 1 2 3 4 5 
+	List(const T* array, size_t size)
+		:_pHead(new Node)
+	{
+		_pHead->_pNext = _pHead;
+		_pHead->_pPre = _pHead;
+		for (size_t i = 0; i < size; i++)
+		{
+			PushBack(array[i]);
+		}
+	}
+	List(const List& l)
+		:_pHead(new Node)
+	{
+		_pHead->_pNext = _pHead;
+		_pHead->_pPre = _pHead;
+		Node *cur = l._pHead->_pNext;
+		while (cur != l._pHead)
+		{
+			PushBack(cur->_data);
+			cur = cur->_pNext;
+		}
+	}
+	List& operator=(const List& l)
+	{
+		delete[] _pHead->_pNext;
+		_pHead->_pNext = _pHead;
+		_pHead->_pPre = _pHead;
+		Node *cur = l._pHead->_pNext;
+		while (cur != _pHead)
+		{
+			PushBack(cur->_data);
+			cur = cur->_pNext;
+		}
+		return *this;
+	}
+	~List()
+	{
+		if (_pHead)
+		{
+			Node *cur = _pHead->_pNext;
+			while (_pHead != cur)
+			{
+				_pHead->_pPre->_pNext = cur;
+				cur->_pPre = _pHead->_pPre;
+				delete _pHead;
+				_pHead = cur;
+				cur = cur->_pNext;
+			}
+			delete _pHead;
+			_pHead = NULL;
+		}
+	}
+
+		///////////////////////////////////////////////////// 
+		Iterator Begin()
+	{
+		return Iterator(_pHead->_pNext);
+	}
+
+	Iterator End()
+	{
+		return Iterator(_pHead);
+	}
+	/////////////////////Modify////////////////////////// 
+	void PushBack(const T& data)
+	{
+		Node *pTemp = new Node(data);
+		pTemp->_pPre = _pHead->_pPre;
+		pTemp->_pNext = _pHead;
+		_pHead->_pPre->_pNext = pTemp;
+		_pHead->_pPre = pTemp;
+	}
+	void PopBack()
+	{
+		if (_pHead->_pNext != _pHead)
+		{
+			Node *cur = _pHead->_pPre;
+			cur->_pPre->_pNext = _pHead;
+			_pHead->_pPre = cur->_pPre;
+			delete cur;
+		}
+	}
+	void PushFront(const T& data)
+	{
+		Node *pTemp = new Node(data);
+		pTemp->_pNext = _pHead->_pNext;
+		pTemp->_pPre = _pHead;
+		_pHead->_pNext->_pPre = pTemp;
+		_pHead->_pNext = pTemp;
+	}
+	void PopFront()
+	{
+		Node *cur = _pHead->_pNext;
+		cur->_pNext->_pPre = _pHead;
+		_pHead->_pNext = cur->_pNext;
+	}
+	Iterator Insert(Iterator pos, const T& data)
+	{
+		Node *pTemp = new Node(data);
+		pTemp->_pNext = pos._pCur;
+		pTemp->_pPre = pos._pCur->_pPre;
+		pos._pCur->_pPre->_pNext = pTemp;
+		pos._pCur->_pPre = pTemp;
+		return Iterator(pos._pCur->_pPre);
+	}
+	Iterator Erase(Iterator pos);
+	bool Empty()const
+	{
+		return !(_pHead->_pNext - _pHead->_pPre);
+	}
+	size_t Size()const
+	{
+		size_t count = 0;
+		Node *cur = _pHead->_pNext;
+		while (cur != _pHead)
+		{
+			count++;
+			cur = cur->_pNext;
+		}
+		return count;
+	}
+	T& Front()
+	{
+		if (Size() > 0)
+		{
+			return _pHead->_pNext->_data;
+		}
+	}
+	const T& Front()const
+	{
+		if (Size() > 0)
+		{
+			return _pHead->_pNext->_data;
+		}
+	}
+	T& Back()
+	{
+		if (Size() > 0)
+		{
+			return _pHead->_pPre->_data;
+		}
+	}
+	const T& Back()const
+	{
+		if (Size() > 0)
+		{
+			return _pHead->_pPre->_data;
+		}
+	}
+	void Clear()
+	{
+		if (_pHead && (_pHead->_pNext != _pHead))
+		{
+			Node *cur = NULL;
+			while (_pHead->_pNext != _pHead)
+			{
+				cur = _pHead->_pNext->_pNext;
+				delete _pHead->_pNext;
+				_pHead->_pNext = cur;
+				cur->_pPre = _pHead;
+			}
+			_pHead->_pNext = NULL;
+		}
+	}
+private:
+	ListNode<T>* _pHead;
+};
+
+
+template<class T, template<class> class Container = List>
+class Queue
+{
+public:
+	Queue()
+	{}
+
+	void Push(const T& data)
+	{
+		_c.PushBack(data);
+	}
+
+	void Pop()
+	{
+		_c.PopFront();
+	}
+
+	size_t Size()const
+	{
+		return _c.Size();
+	}
+
+	bool Empty()const
+	{
+		return _c.Empty();
+	}
+
+	T& Front()
+	{
+		return _c.Front();
+	}
+
+	const T& Front()const
+	{
+		return _c.Front();
+	}
+
+	T& Back()
+	{
+		return _c.Back();
+	}
+
+	const T& Back()const
+	{
+		return _c.Back();
+	}
+private:
+	Container<T> _c;
+};
+
+
+int main()
+{
+	Queue<int> q1;
+	q1.Push(0);
+	q1.Push(1);
+	q1.Push(2);
+	q1.Push(3);
+	q1.Push(4);
+
+	q1.Pop();
+	q1.Pop();
+	q1.Pop();
+
+
+	return 0;
+}
