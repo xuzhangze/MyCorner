@@ -1,0 +1,208 @@
+#pragma once
+
+#include <iostream>
+using namespace std;
+#include <assert.h>
+
+template<typename K, typename V>
+struct AVLTreeNode
+{
+	AVLTreeNode(K key, V value)
+		: _pLeft(NULL)
+		, _pRight(NULL)
+		, _pParent(NULL)
+		, _key(key)
+		, _value(value)
+		, _balance(0)
+	{}
+	AVLTreeNode<K, V>* _pLeft;
+	AVLTreeNode<K, V>* _pRight;
+	AVLTreeNode<K, V>* _pParent;
+	K _key;
+	V _value;
+	int _balance;
+};
+
+
+template<typename K, typename V>
+class AVLTree
+{
+	typedef AVLTreeNode<K, V> Node;
+	typedef Node* pNode;
+public:
+	AVLTree()
+		: _pRoot(NULL)
+	{}
+	AVLTree(K* arrk, size_t size)
+		: _pRoot(NULL)
+	{
+		for(size_t i = 0; i < size; i++)
+			Insert(arrk[i], i);
+	}
+	void Insert(K key, V value)
+	{
+		pNode pnewnode = new Node(key, value);
+		if(NULL == _pRoot)
+			_pRoot = pnewnode;
+		else
+		{
+			pNode pCur = _pRoot;
+			pNode pPrev = NULL;
+			while(pCur)
+			{
+				if(key < pCur->_key)
+				{
+					pPrev = pCur;
+					pCur = pCur->_pLeft;
+				}
+				else if(key > pCur->_key)
+				{
+					pPrev = pCur;
+					pCur = pCur->_pRight;
+				}
+				else
+				{
+					delete pnewnode;
+					return;
+				}
+			}
+			if(key > pPrev->_key)
+				pPrev->_pRight = pnewnode;
+			else
+				pPrev->_pLeft = pnewnode;
+			_AdjustTree(pnewnode);
+		}
+	}
+	~AVLTree()
+	{
+		if(_pRoot)
+		{
+			_Destory(_pRoot);
+		}
+	}
+	void PrintAVLTree()
+	{
+		if(NULL == _pRoot)
+			return;
+		_Print(_pRoot);
+		cout << endl;
+	}
+private:
+	void _Print(pNode pRoot)
+	{
+		if(NULL == pRoot)
+			return;
+		_Print(pRoot->_pLeft);
+		cout << pRoot->_key << " ";
+		_Print(pRoot->_pRight);
+	}
+	void _AdjustTree(pNode pCur)
+	{
+		assert(NULL != pCur);
+		pNode pParent = pCur->_pParent;
+		while(NULL != pParent)
+		{
+			if(pCur == pParent->_pLeft)
+				pParent->_balance--;
+			else
+				pParent->_balance++;
+			if(pParent->_balance == 0)
+				return;
+			else if(pParent->_balance == 1 || pParent->_balance == -1)
+			{
+				pCur = pParent;
+				pParent = pParent->_pParent;
+			}
+			else
+			{
+				if(pParent->_balance == -2)
+				{
+					pNode pChildL = pParent->_pLeft;
+					if(pChildL->_balance == -1)
+						//right
+						_RotateR(pParent);
+					else
+						//left right
+						_RotateLR(pParent);
+				}
+				else
+				{
+					pNode pChildR = pParent->_pRight;
+					if(pChildR->_balance == 1)
+						//left
+						_RotateL(pParent);
+					else
+						//right left
+						_RotateRL(pParent);
+				}
+
+				return;
+			}
+		}
+	}
+	void _RotateL(pNode pRoot)
+	{
+		if(NULL == pRoot || NULL == pRoot->_pRight)
+			return;
+		pNode pCur = pRoot->_pRight;
+		pNode pParent = pRoot->_pParent;
+		if(pParent)
+		{
+			if(pRoot == pParent->_pLeft)
+				pParent->_pLeft = pCur;
+			else
+				pParent->_pRight = pCur;
+		}
+		pCur->_pParent = pParent;
+		pRoot->_pRight = pCur->_pLeft;
+		pCur->_pLeft->_pParent = pRoot;
+		pCur->_pLeft = pRoot;
+		pRoot->_pParent = pCur;
+	}
+	void _RotateR(pNode pRoot)
+	{
+		if(NULL == pRoot || NULL == pRoot->_pLeft)
+			return;
+		pNode pCur = pRoot->_pLeft;
+		pNode pParent = pRoot->_pParent;
+		if(pParent)
+		{
+			if(pRoot == pParent->_pLeft)
+				pParent->_pLeft = pCur;
+			else
+				pParent->_pRight = pCur;
+		}
+		pCur->_pParent = pParent;
+		pRoot->_pLeft = pCur->_pRight;
+		pCur->_pRight->_pParent = pRoot;
+		pCur->_pRight = pRoot;
+		pRoot->_pParent = pCur;
+	}
+	void _RotateLR(pNode pRoot)
+	{
+		if(pRoot)
+		{
+			_RotateL(pRoot->_pLeft);
+			_RotateR(pRoot);
+		}
+	}
+	void _RotateRL(pNode pRoot)
+	{
+		if(pRoot)
+		{
+			_RotateR(pRoot->_pRight);
+			_RotateL(pRoot);
+		}
+	}
+	void _Destory(pNode& pRoot)
+	{
+		if(NULL == pRoot)
+			return;
+		_Destory(pRoot->_pRight);
+		_Destory(pRoot->_pLeft);
+		delete pRoot;
+		pRoot = NULL;
+	}
+private:
+	pNode _pRoot;
+};
