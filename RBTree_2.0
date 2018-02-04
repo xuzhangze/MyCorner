@@ -1,0 +1,259 @@
+#pragma once
+#include <iostream>
+using namespace std;
+#include <stdlib.h>
+enum Color
+{
+	RED,
+	BLACK
+};
+
+template<typename K, typename V>
+struct RBTreeNode
+{
+	RBTreeNode(K key, V value, Color color = RED)
+		: _pLeft(NULL)
+		, _pRight(NULL)
+		, _pParent(NULL)
+		, _key(key)
+		, _value(value)
+		, _color(color)
+	{}
+	RBTreeNode<K, V>* _pLeft;
+	RBTreeNode<K, V>* _pRight;
+	RBTreeNode<K, V>* _pParent;
+	K _key;
+	V _value;
+	Color _color;
+};
+
+template<typename K, typename V>
+class RBTree
+{
+	typedef RBTreeNode<K, V> Node;
+	typedef Node* pNode;
+public:
+	RBTree()
+		: _pRoot(NULL)
+	{}
+	RBTree(K* arrk, size_t size)
+		: _pRoot(NULL)
+	{
+		for(size_t i = 0; i < size; i++)
+			Insert(arrk[i], i);
+	}
+	~RBTree()
+	{
+		if(_pRoot)
+			_Destory(_pRoot);
+	}
+	void Insert(K key, V value)
+	{
+		pNode pnewnode = new Node(key, value);
+		if(NULL == _pRoot)
+		{
+			pnewnode->_color = BLACK;
+			_pRoot = pnewnode;
+		}
+		else
+		{
+			pNode pCur = _pRoot;
+			pNode pParent = NULL;
+			while(pCur)
+			{
+				pParent = pCur;
+				if(key > pCur->_key)
+					pCur = pCur->_pRight;
+				else if(key < pCur->_key)
+					pCur = pCur->_pLeft;
+				else
+				{
+					delete pnewnode;
+					return;
+				}
+			}
+			if(key > pParent->_key)
+				pParent->_pRight = pnewnode;
+			else
+				pParent->_pLeft = pnewnode;
+			pnewnode->_pParent = pParent;
+			_Adjust(pnewnode);
+		}
+	}
+	void PrintRBTree()
+	{
+		if(_pRoot)
+			_InOrder(_pRoot);
+	}
+	size_t CountBlackNode()
+	{
+		size_t count = 0;
+		_CountBlackNode(_pRoot, count);	
+		return count;
+	}
+	void TestRBTree()
+	{
+		if(NULL == _pRoot)
+		{
+			cout<< "Yes" << endl;
+			return;
+		}
+		if(RED == _pRoot->_color)
+		{
+			cout << "Violate Condition 1" << endl;
+			return;
+		}
+		size_t count = 0;
+		pNode pCur = _pRoot;
+		while(pCur)
+		{
+			if(BLACK == pCur->_color)
+				count++;
+			pCur = pCur->_pLeft;
+		}
+		size_t index = 0;
+		_TestThreeAndFour(_pRoot, count, index);
+		cout << "Yes" << endl;
+	}
+private:
+	void _TestThreeAndFour(pNode pRoot, const size_t count, size_t index)
+	{
+		if(NULL == pRoot)
+			return;
+		if(RED == pRoot->_color)
+			if(pRoot->_pParent && pRoot->_pParent->_color == RED)
+			{
+				cout << "Violate Condition 3" << endl;
+				exit(EXIT_FAILURE);
+			}
+		if(BLACK == pRoot->_color)
+			index++;
+		if(NULL == pRoot->_pLeft && NULL == pRoot->_pRight)
+			if(index != count)
+			{
+				cout<< "Violate Condition 4" << endl;
+				exit(EXIT_FAILURE);
+			}
+		_TestThreeAndFour(pRoot->_pLeft, count, index);
+		_TestThreeAndFour(pRoot->_pRight, count, index);
+
+	}
+	void _CountBlackNode(pNode pRoot, size_t& count)
+	{
+		if(NULL == pRoot)
+			return;
+		_CountBlackNode(pRoot->_pLeft, count);
+		if(BLACK == pRoot->_color)
+			count++;
+		_CountBlackNode(pRoot->_pRight, count);
+	}
+	void _Destory(pNode& pRoot)
+	{
+		if(NULL == pRoot)
+			return;
+		_Destory(pRoot->_pLeft);
+		_Destory(pRoot->_pRight);
+		delete pRoot;
+		pRoot = NULL;
+	}
+	void _Adjust(pNode pCur)
+	{
+		if(NULL == pCur)
+			return;
+		if(NULL == pCur->_pParent)
+		{
+			pCur->_color = BLACK;
+			return;
+		}
+		if(pCur->_pParent->_color == BLACK)
+			return;
+		pNode pParent = pCur->_pParent;
+		pNode pGroup = pParent->_pParent;
+		pNode pUncle = NULL;
+		if(pParent == pGroup->_pLeft)
+			pUncle = pGroup->_pRight;
+		else
+			pUncle = pGroup->_pLeft;
+		if(pUncle && pUncle->_color == RED)
+		{
+			pGroup->_color = RED;
+			pParent->_color  = BLACK;
+			pUncle->_color = BLACK;
+			_Adjust(pGroup);
+		}
+		else if(pCur == pParent->_pLeft && pParent == pGroup->_pLeft)
+		{
+			swap(pParent->_color, pGroup->_color);
+			_RotateR(pGroup);
+		}
+		else if(pCur == pParent->_pRight && pParent == pGroup->_pRight)
+		{
+			swap(pParent->_color, pGroup->_color);
+			_RotateL(pGroup);
+		}
+		else if(pCur == pParent->_pRight && pParent == pGroup->_pLeft)
+		{
+			swap(pCur->_color, pGroup->_color);
+			_RotateL(pParent);
+			_RotateR(pGroup);
+		}
+		else
+		{
+			swap(pCur->_color, pGroup->_color);
+			_RotateR(pParent);
+			_RotateL(pGroup);
+		}
+	}
+	void _RotateR(pNode pRoot)
+	{
+		if(NULL == pRoot || NULL == pRoot->_pLeft)
+			return;
+		pNode pChildL = pRoot->_pLeft;
+		pNode pChildLR = pChildL->_pRight;
+		pNode pParent = pRoot->_pParent;
+		if(pParent)
+		{
+			if(pRoot == pParent->_pLeft)
+				pParent->_pLeft = pChildL;
+			else
+				pParent->_pRight = pChildL;
+		}
+		pChildL->_pParent = pParent;
+		pRoot->_pLeft = pChildLR;
+		if(pChildLR)
+			pChildLR->_pParent = pRoot;
+		pChildL->_pRight = pRoot;
+		pRoot->_pParent = pChildL;
+	}
+	void _RotateL(pNode pRoot)
+	{
+		if(NULL == pRoot || NULL == pRoot->_pRight)
+			return;
+		pNode pChildR = pRoot->_pRight;
+		pNode pChildRL = pChildR->_pLeft;
+		pNode pParent = pRoot->_pParent;
+		if(pParent)
+		{
+			if(pRoot == pParent->_pLeft)
+				pParent->_pLeft = pChildR;
+			else
+				pParent->_pRight = pChildR;
+		}
+		pChildR->_pParent = pParent;
+		pRoot->_pRight = pChildRL;
+		if(pChildRL)
+			pChildRL->_pParent = pRoot;
+		pChildR->_pLeft = pRoot;
+		pRoot->_pParent = pChildR;
+	}
+	void _InOrder(pNode pRoot)
+	{
+		if(NULL == pRoot)
+			return;
+		_InOrder(pRoot->_pLeft);
+		cout<< "(" << pRoot->_key << ", " << pRoot->_value << ")" << pRoot->_color << endl;
+		_InOrder(pRoot->_pRight);
+	}
+private:
+	pNode _pRoot;	
+};
