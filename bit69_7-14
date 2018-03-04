@@ -1,0 +1,219 @@
+第七题
+#include <stdio.h>
+#include <assert.h>
+void Swap(int *left, int *right)
+{
+	assert(NULL != left && NULL != right);
+	int tmp = *left ^ *right;
+	*left = tmp ^ *left;
+	*right = tmp ^ *left;
+}
+void Print(int *array, int index, const int size)
+{
+	assert(NULL != array);
+	if(size < 1)
+		return;
+	index++;
+	for(int i = index-1; i < size; i++)
+	{
+		Swap(&array[index-1], &array[i]);
+		Print(array, index, size);
+		if(index == size)
+		{
+			for(int j = 0; j < size; j++)
+				printf("%d ", array[j]);
+			putchar('\n');
+		}
+		Swap(&array[index-1], &array[i]);
+	}
+}
+
+void Permutation(int *array, const int size)
+{
+	assert(NULL != array);
+	if(size < 1)
+		return;
+	int index = 0;
+	Print(array, index, size);
+}
+
+
+int main()
+{
+	int arr[] = { 1, 2, 3, 4 };
+	int sz = sizeof(arr) / sizeof(arr[0]);
+	Permutation(arr, sz);
+
+	return 0;
+}
+
+第八题
+#include <iostream>
+using namespace std;
+#include <cassert>
+
+int MinCommon(int left, int right)
+{
+	assert(0 != left && 0 != right);
+	int common = right;
+	int first = left;
+	int second = right;
+	while(first % second != 0)
+	{
+		common = first % second;
+		first = second;
+		second = common;
+	}
+	return left*right/common;
+}
+
+int main()
+{
+	cout << MinCommon(51, 34) << endl;
+
+	return 0;
+}
+
+第九题
+#include <stdio.h>
+#include <assert.h>
+/*
+void Exchange(int *pfirst, int *psecond)
+{
+	assert(NULL != pfirst);
+	assert(NULL != psecond);
+	int tmp = *pfirst;
+	*pfirst = *psecond;
+	*psecond = tmp;
+}
+*/
+void Exchange(int *pfirst, int *psecond)
+{
+	assert(NULL != pfirst);
+	assert(NULL != psecond);
+	int tmp = *pfirst ^ *psecond;
+	*pfirst = tmp ^ *pfirst;
+	*psecond = tmp ^ *pfirst;
+}
+int main()
+{
+	int first = 10;
+	int second = 20;
+	Exchange(&first, &second);
+	printf("first = %d\nsecond = %d\n", first, second);
+	
+	return 0;
+}
+
+
+第十一题
+#include <iostream>
+using namespace std;
+#include <cassert>
+
+int MaxDivisor(int left, int right)
+{
+	if(0 == left || 0 == right)
+		return 0;
+	int common = right;
+	while(left % right != 0)
+	{
+		common = left % right;
+		left = right;
+		right = common;
+	}
+
+	return common;
+}
+
+int main()
+{
+	cout << MaxDivisor(34, 51) << endl;
+	
+	return 0;
+}
+
+第十二题
+#include <stdio.h>
+#include <assert.h>
+
+void LeapYear(int begin, int end)
+{
+	assert(begin < end);
+	for(int i = begin; i < end; i++)
+	{
+		if((i%4 == 0 && i%100 != 0) || (i%400 == 0))
+			printf("%d ", i);
+	}
+}
+
+int main()
+{
+	LeapYear(0, 2000);
+
+	return 0;
+}
+
+第十三题
+#include <stdio.h>
+#include <assert.h>
+
+double Sum(int N)
+{
+	if(N < 1)
+		return 0;
+	if(1 == N)
+		return 2/1;
+	else
+	{
+		double denominator = 1;
+		double molecule = 2;
+		double sum = 0;
+		for(int i = 0; i < N; i++)
+		{
+			sum += molecule/denominator;
+			int tmp = molecule;
+			molecule += denominator;
+			denominator = tmp;
+		}
+		return sum;
+	}
+}
+
+int main()
+{
+	printf("sum = %.2f\n", Sum(4));	
+
+	return 0;
+}
+
+
+第十四题
+#include <stdio.h>
+#include <assert.h>
+#include <math.h>
+
+int Sum(int number, int N)
+{
+	assert(number > 0);
+	assert(N > 1);
+	int num = 0;
+	int sum = 0;
+	for(int i = 0; i < N; i++)
+	{
+		num = number * pow(10, i) +number;
+		sum += num;
+	}
+	return sum;
+}
+
+int main()
+{
+	int number = 0;
+	int N = 0;
+	printf("input number and N:>");
+	scanf("%d%d", &number, &N);
+	printf("sum = %d\n", Sum(number, N));
+
+	return 0;
+}
