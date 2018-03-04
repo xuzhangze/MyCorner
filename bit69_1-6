@@ -1,0 +1,168 @@
+第一题
+#include <iostream>
+using namespace std;
+
+int main()
+{
+	cout << "Hello world!" << endl;
+
+	return 0;
+}
+
+
+第二题
+#include <iostream>
+using namespace std;
+#include <cassert>
+/*
+int Sum(int max)
+{
+	assert(max >= 1);
+	int sum = 0;
+	while(max)
+		sum += max--;
+	return sum;
+}
+
+int Sum(int n)
+{
+	assert(n >= 1);
+	char array[n][n+1];
+	return sizeof(array)>>1;
+}
+*/
+
+class Sum
+{
+public:
+	Sum()
+	{
+		++n;
+		sum += n;
+	}
+	static int GetSum()
+	{
+		return sum;
+	}
+private:
+	static int n;
+	static int sum;
+};
+int Sum::n = 0;
+int Sum::sum = 0;
+
+int _Sum(int max)
+{
+	assert(max >= 1);
+	Sum *p = new Sum[max];
+	delete[] p;
+	return Sum::GetSum();
+}
+int main()
+{
+	int max = 100;
+	//cout << "Please input max:";
+	//cin >> max;
+	cout << "sum =" << _Sum(max) << endl;
+
+	return 0;
+}
+
+
+第三题
+#include <iostream>
+using namespace std;
+#include <cassert>
+#include <iomanip>
+void Output()
+{
+	for(int i = 1; i < 10; i++)
+	{
+		for(int j = i; j < 10; j++)
+		{
+			cout << i << "x" << j << "=" << i*j << "  ";
+		}
+		cout << endl;
+	}
+}
+
+int main()
+{
+	Output();
+
+	return 0;
+}
+
+第四题
+#include <iostream>
+using namespace std;
+
+template <typename T>
+T Max(T left, T right)
+{
+	return left > right ? left : right;
+}
+
+int main()
+{
+	cout << "max : " << Max(23, 45) << endl;
+
+	return 0;
+}
+
+
+第五题
+#include <iostream>
+using namespace std;
+#include <cassert>
+int FindMax(int *array, int size)
+{
+	assert(NULL != array);
+	assert(size > 0);
+	int max = array[0];
+	for(int i = 1; i < size; i++)
+	{
+		max = array[i] > max ? array[i] : max;
+	}
+	return max;
+}
+
+int main()
+{
+	int arr[] = { 23, 51, 12, 23, 15, 86, 65, 78, 86, 65 };
+	cout << FindMax(arr, 10) << endl;
+
+	return 0;
+}
+
+
+第六题
+#include <iostream>
+using namespace std;
+#include <cassert>
+
+void PrimeNumber(int left, int right)
+{
+	assert(left <= right);
+	if(right < 2)
+		return;
+	for(int i = left; i < right; i++)
+	{
+		int j = 0;
+		for(j = 2; j <= i/2; j++)
+		{
+			if(i%j == 0)
+				break;
+		}
+		if(j == i/2+1)
+			cout << i << " ";
+	}
+	cout << endl;
+}
+
+int main()
+{
+	PrimeNumber(1, 100);
+
+	return 0;
+}
