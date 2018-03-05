@@ -1,0 +1,195 @@
+第15题
+#include <stdio.h>
+#include <assert.h>
+
+int Sum(int a, int n)
+{
+	assert(a > 0);
+	if(n < 1)
+		return 0;
+	int sum = 0;
+	int number = 0;
+	for(int i = 0; i < n; i++)
+	{
+		number = number*10 + a;
+		sum += number;		
+	}
+
+	return sum;
+}
+
+int main()
+{
+	int a = 0;
+	int n = 0;
+	printf("Please input a and n:>");
+	scanf("%d%d", &a, &n);
+	printf("sum = %d\n", Sum(a, n));
+
+	return 0;
+}
+
+第16题
+//#include <stdio.h>
+#include <iostream>
+using namespace std;
+#include <assert.h>
+
+typedef struct Data
+{
+	double _height;
+	double _journey;
+}Data, *pData;
+
+void Leap(pData pd, double height, int N)
+{
+	assert(NULL != pd);
+	assert(height > 0 && N > 0);
+	if(N == 1)
+		return;
+	for(int i = 1; i < N; i++)
+	{
+		pd->_journey += pd->_height*2;
+		pd->_height /= 2;
+	}
+}
+
+
+int main()
+{
+	Data da;
+	int N = 0;
+	double height = 0.0;
+	//printf("Please input start height and N:>");
+	//scanf("%f%d", &height, &N);
+	cin >> height >> N;
+	da._height = height/2.0;
+	da._journey = height;
+	Leap(&da, height, N);
+	//printf("NO.%d sum journey = %lf\nNO.%d height = %lf\n", N, da._journey, N, da._height);
+	cout << da._journey << " " << da._height << endl;
+	return 0;
+}
+
+第17题
+#include <stdio.h>
+#include <assert.h>
+
+int StartQuantity(int remain, int N)
+{
+	assert(remain > 0 && N > 0);
+	if(N == 1)
+		return remain;
+	for(int i = 1; i < N; i++)
+	{
+		remain = (remain+1)*2;
+	}
+
+	return remain;
+}
+
+int main()
+{
+	int remain = 0;
+	int N = 0;
+	printf("Please input remain and N:");
+	scanf("%d%d", &remain, &N);
+	printf("start quantity = %d\n", StartQuantity(remain, N));
+
+	return 0;
+}
+
+第18题
+#include <stdio.h>
+#include <assert.h>
+#include <math.h>
+double Sum(int N)
+{
+	assert(N > 0);
+	double symbol = -1;
+	double sum = 0;
+	for(int i = 1; i <= N; i++)
+	{
+		symbol *= -1;
+		sum += symbol *(1.0/i);
+	}
+
+	return sum;
+}
+
+int main()
+{
+	int N = 0;
+	printf("please input N:");
+	scanf("%d", &N);
+	printf("sum = %lf\n", Sum(N));
+
+	return 0;
+}
+
+第19题
+#include <stdio.h>
+#include <assert.h>
+
+int Factorial(int N)
+{
+	if(N < 1)
+		return 0;
+	int ret = 1;
+	for(int i = 1; i <= N; i++)
+	{
+		ret *= i;	
+	}
+	return ret;
+}
+int FactorialSum(int N)
+{
+	if(N < 1)
+		return 0;
+	int sum = 0;
+	for(int i = 1; i <= N; i++)
+	{
+		sum += Factorial(i);	
+	}
+
+	return sum;
+}
+
+int main()
+{
+	int N = 0;
+	printf("please input N:");
+	scanf("%d", &N);
+	printf("sum = %d\n", FactorialSum(N));
+	return 0;
+}
+
+第二十题
+#include <stdio.h>
+#include <assert.h>
+
+void JudgePalindromic(int number)
+{
+	int tmp = number;
+	int num = 0;
+	while(tmp)
+	{
+		int place = tmp%10;
+		tmp /= 10;
+		num = num*10+place;
+	}
+	if(num == number)
+		printf("Yes\n");
+	else
+		printf("No\n");
+}
+
+
+int main()
+{
+	int number = 0;
+	printf("please input number:");
+	scanf("%d", &number);
+	JudgePalindromic(number);
+	return 0;
+}
