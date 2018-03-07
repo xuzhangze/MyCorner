@@ -1,0 +1,135 @@
+第27题
+#include <stdio.h>
+#include <assert.h>
+
+int mystrlen(char *src)
+{
+	assert(NULL != src);
+	int len = 0;
+	while(*src++)
+		len++;
+	return len;	
+}
+
+int main()
+{
+	char str[50] = { 0 };
+	printf("input string:");
+	scanf("%s", str);
+	printf("lenth = %d\n", mystrlen(str));
+
+	return 0;
+}
+
+
+第28题
+#include <stdio.h>
+#include <assert.h>
+
+int mystrlen(char *src)
+{
+	assert(NULL != src);
+	if(*src == '\0')
+		return 0;
+	return 1+mystrlen(++src);
+}
+
+int main()
+{
+	char str[50] = { 0 };
+	printf("input string:");
+	scanf("%s", str);
+	printf("lenth = %d\n", mystrlen(str));
+	return 0;
+}
+
+第29题
+#include <stdio.h>
+#include <assert.h>
+
+void SortArray(int *array, const int size)
+{
+	assert(NULL != array && size > 0);
+	if(size == 1)
+		return;
+	for(int i = 0; i < (int)size-1; i++)
+	{
+		int sub = i;
+		for(int j = i+1; j < (int)size; j++)
+		{
+			if(array[j] < array[sub])
+				sub = j;
+		}
+		if(sub != i)
+		{
+			int tmp = array[i];
+			array[i] = array[sub];
+			array[sub] = tmp;
+		}
+	}
+}
+
+int main()
+{
+	int arr[] = { 4, 2, 8, 5, 9, 0, 3, 6, 1, 7 };
+	int sz = sizeof(arr) / sizeof(arr[0]);
+	for(int i = 0; i < sz; i++)
+		printf("%d ", arr[i]);
+	putchar('\n');
+	SortArray(arr, sz);
+	for(int i = 0; i < sz; i++)
+		printf("%d ", arr[i]);
+	putchar('\n');
+
+	return 0;
+}
+
+第30题
+#include <stdio.h>
+#include <assert.h>
+
+int SumOne(int number)
+{
+	int sum = 0;
+	while(number)
+	{
+		sum++;
+		number &= number-1;
+	}
+	return sum;
+}
+
+int main()
+{
+	int number = 0;
+	printf("input number:");
+	scanf("%d", &number);
+	printf("one sum = %d\n", SumOne(number));
+
+	return 0;
+}
+
+第31题
+#include <stdio.h>
+#include <assert.h>
+union
+{
+	char ch;
+	int num;
+}bs;
+void Judge()
+{
+	bs.num = 1;
+	if(bs.ch)
+		printf("small\n");
+	else
+		printf("big\n");
+}
+
+int main()
+{
+	Judge();
+
+	return 0;
+}
+
