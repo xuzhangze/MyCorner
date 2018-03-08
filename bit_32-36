@@ -1,0 +1,140 @@
+第32题
+#include <stdio.h>
+#include <assert.h>
+
+void Change(int *pfirst, int *psecond)
+{
+	assert(NULL != pfirst && NULL != psecond);
+	int tmp = *pfirst ^ *psecond;
+	*pfirst = tmp ^ *pfirst;
+	*psecond = tmp ^ *pfirst;
+}
+
+int main()
+{
+	int first = 0;
+	int second = 0;
+	scanf("%d%d", &first, &second);
+	printf("first = %d, second = %d\n", first, second);
+	Change(&first, &second);
+	printf("first = %d, second = %d\n", first, second);
+
+	return 0;
+}
+
+第33题
+#include <stdio.h>
+
+int CountNine(int begin, int end)
+{
+	int count = 0;
+	for(int i = begin; i < end; i++)
+	{
+		int tmp = i;
+		while(tmp)
+		{
+			if(tmp%10 == 9)
+				count++;
+			tmp /= 10;
+		}
+	}
+	return count;
+}
+
+int main()
+{
+	int begin = 0;
+	int end = 0;
+	printf("input begin and end:");
+	scanf("%d%d", &begin, &end);
+	printf("count = %d\n", CountNine(begin, end));
+
+	return 0;
+}
+
+第34题
+#include <stdio.h>
+#include <assert.h>
+
+void PrintNumber(int number)
+{
+	if(number/10 == 0)
+	{
+		printf("%d ", number);
+		return;
+	}
+	PrintNumber(number/10);
+	printf("%d ", number%10);
+}
+
+int main()
+{
+	int number = 0;
+	printf("input number:");
+	scanf("%d", &number);
+	PrintNumber(number);
+
+	return 0;
+}
+
+第35题
+#include <stdio.h>
+#include <assert.h>
+
+char* mystrchr(const char* src, char ch)
+{
+	assert(NULL != src);
+	char *str = (char*)src;
+	while(*str != ch && *str != '\0')
+		str++;
+	if(*str == ch)
+		return str;
+	return NULL;
+}
+
+int main()
+{
+	char str[] = "abcdefghihk";
+	char ch = '\0';
+	printf("string : %s\ninput char:", str);
+	scanf("%c", &ch);
+	char *dst = mystrchr(str, ch);
+	if(dst)
+		printf("%s\n", dst);
+	else
+		printf("No\n");
+
+	return 0;
+}
+
+第36题
+#include <stdio.h>
+#include <assert.h>
+
+char *ReverseString(char *src)
+{
+	assert(NULL != src);
+	char *pstart = src;
+	char *ptail = src;
+	while(*ptail)
+		ptail++;
+	ptail--;
+	while(pstart < ptail)
+	{
+		char tmp = *pstart;
+		*pstart = *ptail;
+		*ptail = tmp;
+		pstart++;
+		ptail--;
+	}
+	return src;
+}
+
+int main()
+{
+	char str[20] = { 0 };
+	printf("input string:");
+	scanf("%s", str);
+	printf("%s\n", ReverseString(str));
+	return 0;
+}
