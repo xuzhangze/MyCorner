@@ -1,0 +1,130 @@
+第37题
+#include <stdio.h>
+#include <assert.h>
+
+int Substr(char dst[], char src[], int start, int len)
+{
+	assert(start >= 0);
+	if(len <= 0)
+		return 0;
+	int count = 0;
+	char *str = src;
+	while(*str)
+	{
+		count++;
+		str++;
+	}
+	if(start > count)
+		return 0;
+	int i = 0;
+	for(; i < len; i++)
+	{
+		if(src[start+i] == '\0')
+			break;
+		dst[i] = src[start+i];
+	}
+	dst[i] = '\0';
+	return i;
+}
+
+
+int main()
+{
+	char dst[30] = { 0 };
+	char str[] = "abcdefghijkopqrstxyz";
+	int len = Substr(dst, str, 20, 26);
+	printf("%s    len = %d\n", dst, len);
+
+	return 0;
+}
+
+第38题
+#include <stdio.h>
+#include <assert.h>
+#include <stdlib.h>
+
+void ChangePrint()
+{
+	char ch;
+	printf("input char:");
+	scanf("%c", &ch);
+	if(ch >= 'A' && ch <= 'Z')
+		ch = ch + ('a'-'A');
+	printf("%c\n", ch);
+}
+
+int main()
+{
+	ChangePrint();
+
+	return 0;
+}
+
+第39题
+#include <stdio.h>
+#include <assert.h>
+
+char  ChangeChar(char ch)
+{
+	assert(ch >= 'a' && ch <= 'z');
+	return 'A' + ('z'-ch);
+}
+
+int main()
+{
+	char ch = 0;
+	scanf("%c", &ch);
+	printf("%c\n", ChangeChar(ch));
+
+	return 0;
+}
+
+第40题
+#include <stdio.h>
+#include <assert.h>
+
+char *mystrcpy(char *dst, const char *src)
+{
+	assert(NULL != dst && NULL != src);
+	char *str = (char*)src;
+	while(*dst++ = *str++)
+		;
+	return (char*)src;
+}
+
+int main()
+{
+	char str[] = { 0 };
+	char dst[30] = { 0 };
+	printf("input string:>");
+	scanf("%s", str);
+	printf("%s\n", mystrcpy(dst, str));
+	return 0;
+}
+
+第41题
+#include <stdio.h>
+#include <assert.h>
+
+char *mystrcat(char *dst, const char *src)
+{
+	assert(NULL != dst && NULL != src);
+	char *str1 = dst;
+	char *str2 = (char*)src;
+	while(*str1)
+		str1++;
+	while(*str1++ = *str2++)
+		;
+	*str1 = '\0';
+	return dst;
+}
+int main()
+{
+	char str[] = { 0 };
+	char dst[30] = "abcde";
+	printf("input string:>");
+	scanf("%s", str);
+	printf("%s\n", mystrcat(dst, str));
+
+	return 0;
+}
