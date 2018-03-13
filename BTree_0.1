@@ -1,0 +1,129 @@
+#pragma once
+
+#include <iostream>
+using namespace std;
+#include <cassert>
+#include <utility.h>
+template<typename K, int M = 3>
+struct BTreeNode
+{
+	K _keys[M];
+	BTreeNode<K, M> *_pSub[M+1];
+	BTreeNode<K, M> *_pParent;
+	int _size;
+	BTreeNode()
+		: _pParent(NULL)
+		, _size(0)
+	{
+		for(int i = 0; i < M; i++)
+		{
+			_keys[i] = 0;
+			_pSub[i] = NULL;
+		}
+		_pSub[M] = NULL;
+	}
+};
+
+template<typename K, int M = 3>
+class BTree
+{
+	typedef BTreeNode<K, M> Node;
+	typedef Node *pNode;
+public:
+	BTree()
+		: _pRoot(NULL)
+	{}
+	BTree(K *array, int size)
+		: _pRoot(NULL)
+	{
+		assert(NULL != array && size > 0);
+		for(int i = 0; i < size; i++)
+			Insert(array[i]);
+	}
+	bool Insert(K key)
+	{
+		if(NULL == _pRoot)
+		{
+			_pRoot = new Node;
+			_pRoot->_key[_pRoot->_size++] = key;
+			_pRoot->_pParent = NULL;
+			_pRoot->_size++;
+			return true;
+		}
+		pair<pNode, int> kv = _Find(key);
+		while(1)
+		{
+			if(kv.first && kv.second == -1)
+				_Insert(kv.first, key);
+			else
+				return false;
+			pNode pCur = kv.first;
+			if(pCur->_size == M)
+			{
+				int mod = pCur->_size / 2;
+				pNode pNewChild = new Node;
+				for(int i = mod+1; i < pCur->_size; i++)
+				{
+					pNewChild->_keys[pNewChild->_size] = pCur->_keys[i];
+					pNewChild->_pSub[pNewChild->_size++] = pCur->_pSub[i];
+				}
+				pNewChild->_pSub[pNewChild->_size] = pCur->_pSub[pCur->_size];
+				if(pCur->_pParent)
+				{
+					kv.first = pCur->_pParent;
+					kv.second = -1;
+					key = pCur->_keys[mod];
+					pCur->_pParent->_pSub[pCur->_pParent->_size+1] = pNewChild;
+				}
+				else
+				{}
+			}
+		}
+	}
+private:
+	pair<pNode, int> _Find(T key)
+	{
+		pNode pCur = _pRoot;
+		pNode pParent = NULL;
+		while(pCur)
+		{
+			int i = 0;
+			while(i < pCur->_size)
+			{
+				if(key == pCur->_keys[i])
+					return pair<pNode, int>()(pCur, i);
+				else if(key > pCur->_keys[i])
+					i++;
+				else
+					break;
+			}
+			pParent = pCur;
+			pCur = pCur->pSub[i];
+		}
+		return pair<pNode, int>()(pParent, -1);
+	}
+	bool _Insert(pNode pCur, T key)
+	{
+		if(NULL == pCur || M == pCur->_size)
+			return false;
+		int i = 0;
+		for(; i < pCur->_size; i++)
+		{
+			if(key < pCur->_keys[i])
+				break;
+		}
+		if(i != pCur->_size)
+		{
+			pCur->_pSub[pCur->_size+1] = pCur->_pSub[pCur->_size];
+			for(int j = pCur->_size; j > i; j--)
+			{
+				pCur->_keys[j] = pCur->_keys[j-1];
+				pCur->_pSub[j] = pCur->_pSub[j-1];
+			}
+		}
+		pCur->_keys[i] = key;
+		pCur->_size++;
+	}
+private:
+	pNode _pRoot;
+};
