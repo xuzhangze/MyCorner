@@ -1,0 +1,29 @@
+#include <stdio.h>
+#include <assert.h>
+
+int mystrcmp(char *str1, char *str2)
+{
+	assert(NULL != str1 && NULL != str2);
+	while (*str1 && *str1 == *str2)
+	{
+		str1++;
+		str2++;
+	}
+	return str1 - str2;
+}
+
+int main()
+{
+	char str1[20];
+	char str2[20];
+	scanf("%s%s", str1, str2);
+	int ret = mystrcmp(str1, str2);
+	if (ret < 0)
+		printf("小于\n");
+	else if (ret == 0)
+		printf("等于\n");
+	else
+		printf("大于\n");
+
+	return 0;
+}
