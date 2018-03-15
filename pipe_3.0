@@ -1,0 +1,108 @@
+Makefile:
+.PHONY : all
+all : server client
+
+server : server.c
+	gcc server.c -o server
+
+client : client.c
+	gcc client.c -o client
+
+.PHONY : clean
+clean :
+	rm -f server client
+  
+  server.c:
+  #include <stdio.h>
+#include <sys/stat.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
+#include <fcntl.h>
+
+#define ERR_EXIT(m) \
+do{\
+	perror(m);\
+	exit(EXIT_FAILURE);\
+}while(0);
+
+
+int main()
+{
+	umask(0);
+
+	if(mkfifo("myfifo", 0644) == -1)
+		ERR_EXIT("mkfifo");
+	
+	int rfd = open("myfifo", O_RDONLY);
+	if(rfd == -1)
+		ERR_EXIT("open");
+
+	char buf[1024] = { 0 };
+	int len;
+	while(1)
+	{
+		if((len = read(rfd, buf, 1023)) == -1)
+			ERR_EXIT("read");
+		if(len == 0)
+		{
+			printf("client quit\n");
+			break;
+		}
+		else
+		{
+			printf("%s", buf);
+			memset(buf, 0x00, 1024);
+		}
+	}
+
+	close(rfd);
+
+	return 0;
+}
+
+client.c:
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <fcntl.h>
+#include <sys/types.h>
+
+
+
+#define ERR_EXIT(m) \
+do{\
+	perror(m);\
+	exit(EXIT_FAILURE);\
+}while(0);
+
+int main()
+{
+	int wfd = open("myfifo", O_WRONLY);
+	if(wfd == -1)
+		ERR_EXIT("myfifo");
+
+	char buf[1024] = { 0 };
+	int len;
+	while(1)
+	{
+		if((len = read(0, buf, 1024)) == -1)
+			ERR_EXIT("read");
+		if(len == 0)
+		{
+			printf("client quit\n");
+			break;
+		}
+		else
+		{
+			if(write(wfd, buf, 1024) == -1)
+				ERR_EXIT("write");
+			memset(buf, 0x00, 1024);
+		}
+	}
+
+	close(wfd);
+
+	return 0;
+}
