@@ -1,0 +1,57 @@
+#include <unistd.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+int main()
+{
+	int fds[2];
+	if(pipe(fds) == -1)
+	{
+		perror("pipe");
+		exit(EXIT_FAILURE);
+	}
+
+	pid_t id;
+	id = fork();
+	if(id == -1)
+	{
+		perror("fork");
+		exit(EXIT_FAILURE);
+	}
+	else if(id == 0)
+	{//child
+		close(fds[0]);
+		while(1)
+		{
+			if(write(fds[1], "Hello", 5) == -1)
+				exit(EXIT_FAILURE);
+			sleep(2);
+		}
+		close(fds[1]);
+		exit(EXIT_SUCCESS);
+	}
+	else
+	{//father
+		close(fds[1]);
+		char buf[10] = { 0 };
+		while(1)
+		{
+			int len = 0;
+			if((len = read(fds[0], buf, 10)) == -1)
+				exit(EXIT_FAILURE);
+			else if(len == 0)
+			{
+				printf("child quit");
+				exit(EXIT_SUCCESS);
+			}
+			else
+				printf("%s\n", buf);
+		}
+		close(fds[0]);
+		exit(EXIT_SUCCESS);
+	}
+
+
+	return 0;
+}
