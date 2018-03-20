@@ -1,0 +1,162 @@
+#pragma once
+
+#include <iostream>
+using namespace std;
+#include <cassert>
+#include "Pair.hpp"
+template<typename K, int M = 3>
+struct BTreeNode
+{
+	K _keys[M];
+	BTreeNode<K, M> *_pSub[M+1];
+	BTreeNode<K, M> *_pParent;
+	int _size;
+	BTreeNode()
+		: _pParent(NULL)
+		, _size(0)
+	{
+		for(int i = 0; i < M; i++)
+		{
+			_keys[i] = 0;
+			_pSub[i] = NULL;
+		}
+		_pSub[M] = NULL;
+	}
+};
+
+template<typename K, int M = 3>
+class BTree
+{
+	typedef BTreeNode<K, M> Node;
+	typedef Node *pNode;
+public:
+	BTree()
+		: _pRoot(NULL)
+	{}
+	BTree(K *array, int size)
+		: _pRoot(NULL)
+	{
+		assert(NULL != array && size > 0);
+		for(int i = 0; i < size; i++)
+			Insert(array[i]);
+	}
+	void Insert(K key)
+	{
+		if(NULL == _pRoot)
+		{
+			_pRoot = new Node;
+			_pRoot->_keys[_pRoot->_size] = key;
+			_pRoot->_pParent = NULL;
+			_pRoot->_size++;
+			cout << "insert" << key << "!" << endl;
+			return;
+		}
+		Pair<pNode, int> kv = _Find(key);
+		if(kv.first == NULL || kv.second != -1)
+			return;
+		_Insert(kv.first, key, NULL);
+		pNode pCur = kv.first;
+		while(1)
+		{
+			if(M != pCur->_size)
+				return;
+			
+			pNode pnewnode = new Node;
+			int mid = M / 2;
+			for(int i = 0; i < mid; i++)
+			{
+				pnewnode->_keys[i] = pCur->_keys[mid+1+i];
+				pnewnode->_pSub[i] = pCur->_pSub[mid+1+i];
+				pnewnode->_size++;
+			}
+			pnewnode->_pSub[pnewnode->_size] = pCur->_pSub[pCur->_size];
+			key = pCur->_keys[mid];
+			pCur->_size = M / 2;
+
+			if(pCur->_pParent)
+			{
+				_Insert(pCur->_pParent, key, pnewnode);	
+				pCur = pCur->_pParent;			
+			}
+			else
+			{
+				pNode pRoot = new Node;
+				pRoot->_keys[pRoot->_size] = key;
+				pRoot->_pSub[pRoot->_size++] = pCur;
+				pRoot->_pSub[pRoot->_size] = pnewnode;
+				pCur->_pParent = pRoot;
+				pnewnode->_pParent = pRoot;
+				_pRoot = pRoot;
+			}
+		}
+	}
+
+	void PrintBTree()
+	{
+		_PrintBTree(_pRoot);
+		cout << endl;
+	}
+private:
+	Pair<pNode, int> _Find(K key)
+	{
+		pNode pCur = _pRoot;
+		pNode pParent = NULL;
+		while(pCur)
+		{
+			int i = 0;
+			while(i < pCur->_size)
+			{
+				if(key == pCur->_keys[i])
+					return Pair<pNode, int>(pCur, i);
+				else if(key > pCur->_keys[i])
+					i++;
+				else
+					break;
+			}
+			pParent = pCur;
+			pCur = pCur->_pSub[i];
+		}
+		return Pair<pNode, int>(pParent, -1);
+	}
+	bool _Insert(pNode pCur, K key, pNode pChild)
+	{
+		if(NULL == pCur || M == pCur->_size)
+			return false;
+		int i = 0;
+		for(; i < pCur->_size; i++)
+		{
+			if(key < pCur->_keys[i])
+				break;
+		}
+		if(i != pCur->_size)
+		{
+			pCur->_pSub[pCur->_size+1] = pCur->_pSub[pCur->_size];
+			for(int j = pCur->_size; j > i; j--)
+			{
+				pCur->_keys[j] = pCur->_keys[j-1];
+				pCur->_pSub[j] = pCur->_pSub[j-1];
+			}
+		}
+		pCur->_keys[i] = key;
+		pCur->_size++;
+		pCur->_pSub[i+1] = pChild;
+		if(pChild && pChild->_pParent)
+			pChild->_pParent = pCur;
+		cout << "insert" << key << "!" << endl;
+		return true;
+	}
+	void _PrintBTree(pNode pRoot)
+	{
+		if(pRoot)
+		{
+			for(int i = 0; i < pRoot->_size; i++)
+			{
+				_PrintBTree(pRoot->_pSub[i]);
+				cout << pRoot->_keys[i] << " ";
+			}
+			_PrintBTree(pRoot->_pSub[pRoot->_size]);
+		}
+	}
+private:
+	pNode _pRoot;
+};
