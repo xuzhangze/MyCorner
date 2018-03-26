@@ -1,0 +1,169 @@
+Makefile:
+.PHONY : all
+all : server client
+
+server : server.c comm.c
+	gcc -o server server.c comm.c
+
+client : client.c comm.c
+	gcc -o client client.c comm.c
+
+.PHONY : clean
+clean :
+	rm -f server client
+
+comm.h：
+#ifndef _COMM_H_
+#define _COMM_H_
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <assert.h>
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
+#include <string.h>
+#include <strings.h>
+
+#define PATHNAME "."
+#define PROJ_ID 0x6666
+#define SERVER_TYPE 1
+#define CLIENT_TYPE 2
+
+
+struct mymsg
+{
+	long mtype;
+	char mtext[1024];
+};
+
+int CreatMsgQueue();
+int GetMsgQueue();
+int DelQueue(int msgid);
+int SendMsg(int msgid, char *buf, long mtype);
+ssize_t RecMsg(int msgid, char *buf, long mtype);
+
+
+
+#endif //__COMM_H_
+
+comm.c：
+#include "comm.h"
+
+static int _GetCommMsgQueue(int flags)
+{
+	key_t _key = ftok(PATHNAME, PROJ_ID);
+	if(_key < 0)
+	{
+		perror("ftok");
+		return -1;    
+	}
+	int msgid = msgget(_key, flags);
+	if(msgid < 0)
+	{
+		printf("msgget\n");
+	}
+    return msgid;
+}
+int CreatMsgQueue()
+{
+	return _GetCommMsgQueue(IPC_CREAT|IPC_EXCL|0666);
+}
+
+int GetMsgQueue()
+{
+	return _GetCommMsgQueue(IPC_CREAT);
+}
+
+int DelQueue(int msgid)
+{
+	return msgctl(msgid, IPC_RMID, NULL);
+}
+
+int SendMsg(int msgid, char *buf, long mtype)
+{
+	assert(NULL != buf);
+	struct mymsg msg;
+	msg.mtype = mtype;
+	strcpy(msg.mtext, buf);
+	return msgsnd(msgid, (void*)&msg, sizeof(msg.mtext), 0);
+}
+
+ssize_t RecMsg(int msgid, char *buf, long mtype)
+{
+	assert(NULL != buf);
+	struct mymsg msg;
+	int msglen = msgrcv(msgid, (void*)&msg, sizeof(msg.mtext), mtype, 0);
+	if(msglen < 0)
+	{
+		perror("msgrcv");
+		return -1;
+	}
+	strcpy(buf, msg.mtext);
+	return msglen;
+}
+
+server.c:
+#include "comm.h"
+
+int main()
+{
+	char buf[1024] = { 0 };
+	int msgid = GetMsgQueue();
+	int msglen = 0;
+	if(msgid < 0)
+		exit(EXIT_FAILURE);
+	while(1)
+	{
+		if((msglen = RecMsg(msgid, buf, CLIENT_TYPE)) < 0)
+			break;
+		buf[msglen] = 0;
+		write(1, "client:>", strlen("client:>"));
+		write(1, buf, strlen(buf));
+		if(strcmp(buf, "quit\n") == 0)
+			break;
+		write(1, "server:>", strlen("server:>"));
+		if((msglen = read(0, buf, sizeof(buf))) < 0)
+			break;
+		buf[msglen] = 0;
+		if(SendMsg(msgid, buf, SERVER_TYPE) < 0)
+			break;
+		if(strcmp(buf, "quit\n") == 0)
+			break;
+	}
+	DelQueue(msgid);
+
+	return 0;
+}
+
+client.c:
+#include "comm.h"
+
+int main()
+{
+	char buf[1024] = { 0 };
+	int msgid = CreatMsgQueue();
+	int msglen = 0;
+	if(msgid < 0)
+		exit(EXIT_FAILURE);
+	while(1)
+	{
+		write(1, "client:>", strlen("client:>"));
+		if((msglen = read(0, buf, sizeof(buf))) < 0)
+			break;
+		buf[msglen] = 0;
+		if(SendMsg(msgid, buf, CLIENT_TYPE) < 0)
+			break;
+		if(strcmp(buf, "quit\n") == 0)
+			break;
+		if((msglen = RecMsg(msgid, buf, SERVER_TYPE)) < 0)
+			break;
+		buf[msglen] = 0;
+		if(strcasecmp(buf, "quit\n") == 0)
+			break;
+		write(1, "server:>", strlen("server:>"));
+		write(1, buf, strlen(buf));
+	}
+
+	return 0;
+}
