@@ -1,0 +1,58 @@
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <signal.h>
+
+/*
+int main(void)
+{
+	pid_t pid = fork();
+	if(pid < 0)
+	{
+		perror("fork");
+		exit(EXIT_FAILURE);
+	}
+	if(pid == 0)
+	{
+		alarm(10);
+		sleep(2);
+		int t = alarm(2);
+		printf("child quit! remaining:>%d\n", t);
+	}
+	else
+	{
+		int status;
+		wait(&status);
+		printf("%d\n", status);
+	}
+
+	return 0;
+}
+
+
+
+int main(void)
+{
+	int i = 0;
+	while(1)
+	{
+		printf("time:>%d\n", ++i);
+		sleep(1);
+		if(i == 5)
+			raise(9);
+	}
+	return 0;
+}
+*/
+
+int main(void)
+{
+	alarm(10);
+	sleep(2);
+	int t = alarm(2);
+	printf("remaining time :> %d\n", t);
+
+	return 0;
+}
