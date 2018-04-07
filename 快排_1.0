@@ -1,0 +1,69 @@
+#include "compare.hpp"
+
+template <typename T>
+int SelectMid(T *array, int left, int right)
+{
+	assert(NULL != array && left >= 0 && right >= 0);
+	if(right - left <= 1)
+		return left;
+	int mid = left + ((right-left)>>1);
+/*
+	int buf[3] = { left, mid, right-1 };
+	for(int i = 0; i < 2; i++)
+	{
+		for(int j = 0; j < 2-i; j++)
+		{
+			if(Greater<T>()(array[buf[j]], array[buf[j+1]]))
+				swap(buf[j], buf[j+1]);
+		}
+	}
+	return buf[1];
+*/
+	if(Greater<T>()(array[left], array[mid]));
+		swap(array[left], array[mid]);
+	if(Greater<T>()(array[mid], array[right-1]));
+		swap(array[mid], array[right-1]);
+	if(Greater<T>()(array[left], array[mid]));
+		swap(array[left], array[mid]);
+	return mid;
+}
+
+template <typename T>
+void Partition(T *array, int left, int right, T key)
+{
+	assert(NULL != array && left >= 0 && right >= 0);
+	if(right - left <= 1)
+		return;
+	int start = left;
+	int tail = right-1;
+	while(start < tail)
+	{
+		while(Less<T>()(array[start], key) && start < tail)
+			start++;
+		while(Greater<T>()(array[tail], key) && start < tail)
+			tail--;
+		if(start < tail)
+			swap(array[start], array[tail]);
+	}
+}
+
+template <typename T>
+void _quickSort(T *array, int left, int right)
+{
+	assert(NULL != array && left >= 0 && right >= 0);
+	if(right - left <= 1)
+		return;
+	int keysub = SelectMid(array, left, right);
+	Partition(array, left, right, array[keysub]);
+	_quickSort(array, left, keysub);
+	_quickSort(array, keysub+1, right);
+}
+
+template <typename T>
+void QuickSort(T *array, const int size)
+{
+	assert(NULL != array && size > 0);
+	if(size == 1)
+		return;
+	_quickSort(array, 0, (int)size);
+}
