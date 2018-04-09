@@ -1,0 +1,80 @@
+#include <stdio.h>
+#include <pthread.h>
+#include <sys/types.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/syscall.h>
+#define _GNU_SOURCE
+/*
+void *thread_run1(void *arg)
+{
+	printf("%s\n", (char*)arg);
+	int *p = (int*)malloc(sizeof(int));
+	*p = 1;
+	sleep(2);
+	return (void*)p;
+}
+void *thread_run2(void *arg)
+{
+	printf("%s\n", (char*)arg);
+	int *p = (int*)malloc(sizeof(int));
+	*p = 2;
+	sleep(2);
+	pthread_exit((void*)p);
+}
+void *thread_run3(void *arg)
+{
+	printf("%s\n", (char*)arg);
+	while(1);
+}
+int main(void)
+{
+	pthread_t tid1, tid2, tid3;
+	void *ret1, *ret2, *ret3;
+	pthread_create(&tid1, NULL, thread_run1, "thread No1");
+	pthread_create(&tid2, NULL, thread_run2, "thread No2");
+	pthread_create(&tid3, NULL, thread_run3, "thread No3");
+	//sleep(1);
+	pthread_cancel(tid3);
+
+	pthread_join(tid1, &ret1);
+	printf("thread quit! thread id : %X, return code : %d\n", tid1, *(int*)ret1);
+	free(ret1);
+	pthread_join(tid2, &ret2);
+	printf("thread quit! thread id : %X, return code : %d\n", tid2, *(int*)ret2);
+	free(ret2);
+	pthread_join(tid3, &ret3);
+	if(ret3 == PTHREAD_CANCELED)
+		printf("thread quit! thread id : %X, return code : PTHREAD_CANCELED\n", tid3);
+	else
+		printf("thread quit! thread id : %X, return code : NULL\n", tid3);
+
+
+	return 0;
+}
+*/
+
+void *thread_run(void *arg)
+{
+	pthread_detach(pthread_self());
+	printf("%s\n", (char*)arg);
+	return NULL;
+}
+
+int main(void)
+{
+	pthread_t tid;
+	if(pthread_create(&tid, NULL, thread_run, "thread run") != 0)
+	{
+		printf("create thread errno\n");
+		return 1;
+	}
+	printf("I am thread group!\n");
+	sleep(1);
+	if(pthread_join(tid, NULL) == 0)
+		printf("thread wait success\n");
+	else
+		printf("thread wait failed\n");
+
+	return 0;
+}
