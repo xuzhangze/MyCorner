@@ -1,0 +1,167 @@
+#include <stdio.h>
+#include <pthread.h>
+#include <sys/types.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/syscall.h>
+#define _GNU_SOURCE
+/*
+int ticket = 1000;
+pthread_mutex_t mutex;
+pthread_cond_t cond;
+void *sellticket(void *arg)
+{
+	char *id = (char*)arg;
+	while(1)
+	{
+		pthread_mutex_lock(&mutex);
+		if(ticket > 0)
+		{
+			usleep(1000);
+			printf("%s buy ticket: %d\n", id, ticket);
+			ticket--;
+			pthread_mutex_unlock(&mutex);
+		}
+		else
+		{
+			pthread_mutex_unlock(&mutex);
+			break;
+		}
+	}
+	return NULL;
+}
+int main(void)
+{
+	pthread_t tid1, tid2, tid3, tid4;
+	pthread_mutex_init(&mutex, NULL);
+	pthread_cond_init(&cond, NULL);
+	pthread_create(&tid1, NULL, sellticket, "thread 1");
+	pthread_create(&tid2, NULL, sellticket, "thread 2");
+	pthread_create(&tid3, NULL, sellticket, "thread 3");
+	pthread_create(&tid4, NULL, sellticket, "thread 4");
+
+	pthread_join(tid1, NULL);
+	pthread_join(tid2, NULL);
+	pthread_join(tid3, NULL);
+	pthread_join(tid4, NULL);
+	pthread_mutex_destroy(&mutex);
+	pthread_cond_destroy(&cond);
+
+	return 0;
+}
+
+pthread_cond_t cond;
+pthread_mutex_t mutex;
+
+void *thread_run1(void *arg)
+{
+	while(1)
+	{
+		pthread_cond_wait(&cond, &mutex);
+		printf("tid1 run!\n");
+	}
+}
+void *thread_run2(void *arg)
+{
+	while(1)
+	{
+		pthread_cond_signal(&cond);
+		sleep(1);
+	}
+}
+
+int main(void)
+{
+	pthread_t tid1, tid2;
+	pthread_cond_init(&cond, NULL);
+	pthread_mutex_init(&mutex, NULL);
+
+	pthread_create(&tid1, NULL, thread_run1, NULL);
+	pthread_create(&tid2, NULL, thread_run2, NULL);
+
+	pthread_join(tid1, NULL);
+	pthread_join(tid2, NULL);
+
+	pthread_cond_destroy(&cond);
+	pthread_mutex_destroy(&mutex);
+
+	return 0;
+}
+*/
+
+pthread_cond_t cond;
+pthread_mutex_t mutex;
+int i = 0;
+
+void *Producer1(void *arg)
+{
+	int *pt = (int*)arg;
+	while(1)
+	{
+		pthread_mutex_lock(&mutex);
+		*pt = ++i;
+		printf("producer1: %d\n", i);
+		pthread_cond_signal(&cond);
+		pthread_mutex_unlock(&mutex);
+		sleep(1);
+	}
+}
+void *Producer2(void *arg)
+{
+	int *pt = (int*)arg;
+	while(1)
+	{
+		pthread_mutex_lock(&mutex);
+		*pt = ++i;
+		printf("producer2: %d\n", i);
+		pthread_cond_signal(&cond);
+		pthread_mutex_unlock(&mutex);
+		sleep(1);
+	}
+}
+void *Consumer1(void *arg)
+{
+	int *pt = (int*)arg;
+	while(1)
+	{
+		pthread_mutex_lock(&mutex);
+		pthread_cond_wait(&cond, &mutex);
+		printf("consumer1: %d\n", *pt);
+		pthread_mutex_unlock(&mutex);
+		usleep(10000);
+	}
+}
+void *Consumer2(void *arg)
+{
+	int *pt = (int*)arg;
+	while(1)
+	{
+		pthread_mutex_lock(&mutex);
+		pthread_cond_wait(&cond, &mutex);
+		printf("consumer2: %d\n", *pt);
+		pthread_mutex_unlock(&mutex);
+		usleep(10000);
+	}
+}
+int main(void)
+{
+	int *p = (int*)malloc(sizeof(int));
+	pthread_t producer1, producer2, consumer1, consumer2;
+	pthread_cond_init(&cond, NULL);
+	pthread_mutex_init(&mutex, NULL);
+
+	pthread_create(&producer1, NULL, Producer1, p);
+	pthread_create(&producer2, NULL, Producer2, p);
+	pthread_create(&consumer1, NULL, Consumer1, p);
+	pthread_create(&consumer2, NULL, Consumer2, p);
+
+	pthread_join(producer1, NULL);
+	pthread_join(producer2, NULL);
+	pthread_join(consumer1, NULL);
+	pthread_join(consumer2, NULL);
+
+	pthread_cond_destroy(&cond);
+	pthread_mutex_destroy(&mutex);
+
+	return 0;
+}
