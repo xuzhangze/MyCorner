@@ -1,0 +1,24 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <signal.h>
+
+
+
+int main(void)
+{
+	sigset_t set;
+	int i = 0;
+	sigemptyset(&set);
+	sigaddset(&set, 2);
+	sigprocmask(SIG_SETMASK, &set, NULL);
+	while(1)
+	{
+		i++;
+		printf("run ~~~\n");
+		sleep(1);
+		if(i == 5)
+			sigprocmask(SIG_UNBLOCK, &set, NULL);
+	}
+
+	return 0;
+}
