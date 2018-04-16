@@ -1,0 +1,81 @@
+/*
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <signal.h>
+#include <fcntl.h>
+#include <string.h>
+#include <time.h>
+
+#define ERR_EXIT(m) \
+	do\
+	{\
+		perror(m);\
+		exit(EXIT_FAILURE);\
+	}while(0)
+
+void mydaemon()
+{
+	int fd0;
+	time_t t;
+	pid_t pid;
+	struct sigaction sa;
+	umask(0);
+
+	if((pid = fork()) < 0)
+		ERR_EXIT("fork");
+	else if(pid > 0)
+		exit(EXIT_SUCCESS);
+	
+	setsid();
+	
+	sa.sa_handler = SIG_IGN;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = 0;
+	if(sigaction(SIGCHLD, &sa, NULL) < 0)
+		ERR_EXIT("sigaction");
+
+	if((pid = fork()) < 0)
+		ERR_EXIT("fork");
+	else if(pid > 0)
+		exit(EXIT_SUCCESS);
+	
+	if(chdir("/") < 0)
+		ERR_EXIT("chdir");
+	
+	close(0);
+	fd0 = open("/dev/null", O_RDWR);
+	dup2(fd0, 1);
+	dup2(fd0, 2);
+
+	while(1)
+	{
+		fd0 = open("daemon.txt", O_WRONLY|O_CREAT|O_APPEND, 0644);
+		if(fd0 == -1)
+			ERR_EXIT("open");
+		t = time(0);
+		char *buf = asctime(localtime(&t));
+		write(fd0, buf, strlen(buf));
+		close(fd0);
+		sleep(60);
+	}
+}
+
+int main()
+{
+	mydaemon();
+
+	return 0;
+}
+*/
+
+#include <stdio.h>
+#include <unistd.h>
+
+int main()
+{
+	daemon(0, 0);
+	return 0;
+}
