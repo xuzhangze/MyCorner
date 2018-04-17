@@ -1,0 +1,73 @@
+#include <iostream>
+using namespace std;
+
+class ufs
+{
+public:
+	ufs(const size_t n = 5)
+		: _size(n+1)
+		, _set(new int[n+1])
+	{
+		for(size_t i = 0; i < _size; i++)
+			_set[i] = -1;
+	}
+	~ufs()
+	{
+		if(_set)
+			delete[] _set;
+	}
+	void Insert(int left, int right)
+	{
+		if(-1 == _set[left] && -1 == _set[right])
+		{
+			_set[left] += _set[right];
+			_set[right] = left;
+		}
+		else if(-1 < _set[left] && -1 < _set[right])
+		{
+			_set[_set[left]] += _set[_set[right]];
+			_set[_set[right]] = _set[left];
+		}
+		else if(-1 > _set[left] && -1 > _set[right])
+		{
+			_set[left] += _set[right];
+			_set[right] = left;
+		}
+		else if((-1 == _set[left] && -1 > _set[right]) || (-1 > _set[left] && -1 == _set[right]))
+		{
+			if(-1 == _set[left])
+				swap(left, right);
+
+			_set[left] += _set[right];
+			_set[right] = left;
+		}
+		else if((-1 == _set[left] && -1 < _set[right]) || (-1 < _set[left] && -1 == _set[right]))
+		{
+			if(-1 == _set[left])
+				swap(left, right);
+
+			_set[_set[left]] += _set[right];
+			_set[right] = _set[left];
+		}
+		else
+		{
+			if(-1 < _set[left])
+				swap(left, right);
+
+			_set[left] += _set[_set[right]];
+			_set[_set[right]] = left;
+		}
+	}
+	int SetN()
+	{
+		int count = 0;
+		for(int i = 0; i <_size; i++)
+			if(_set[i] < -1)
+				count++;
+
+		return count;
+	}
+private:
+	int *_set;	
+	int _size;
+};
