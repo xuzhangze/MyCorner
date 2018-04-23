@@ -143,6 +143,7 @@ private:
 		}
 	}
 	
+	
 	void _RotateR(pNode pRoot)
 	{
 		if(NULL == pRoot || NULL == pRoot->_pLeft)
