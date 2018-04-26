@@ -1,0 +1,61 @@
+
+template<typename V, bool IsDigraph = true>
+class Map
+{
+public:
+	Map(const string str = "")
+	{
+		size_t size = str.length();
+		_v.resize(size);
+		for(size_t i = 0; i < size; i++)
+			_v[i] = str[i];
+		_map.resize(size);
+		for(size_t i = 0; i < size; i++)
+			_map[i].resize(size, 0);
+	}
+	bool InsertEdge(const V& origin, const V& terminus, const int& weight)
+	{
+		int originSub = FindSub(origin);
+		int terminuSub = FindSub(terminus);
+		if(originSub == terminuSub || originSub < 0 || terminuSub < 0)
+			return false;
+		if(IsDigraph)
+		{
+			_map[originSub][terminuSub] = weight;
+		}
+		else
+		{
+			_map[originSub][terminuSub] = weight;
+			_map[terminuSub][originSub] = weight;
+		}
+		return true;
+	}
+
+	int FindSub(const V& value)
+	{
+		size_t size = _v.size();
+		for(size_t i = 0; i < size; i++)
+			if(value == _v[i])
+				return i;
+		return -1;
+	}
+	void PrintMap()
+	{
+		size_t size = _v.size();
+		cout << " ";
+		for(size_t i = 0; i < size; i++)
+			cout << " " << _v[i];
+		cout << endl;
+		for(size_t i = 0; i < size; i++)
+		{
+			cout << _v[i];
+			for(size_t j = 0; j < size; j++)
+				cout << " " << _map[i][j];
+
+			cout << endl;
+		}
+	}
+private:
+	vector<V> _v;
+	vector<vector<int> > _map;
+};
