@@ -1,0 +1,210 @@
+#pragma once
+
+#include <iostream>
+using namespace std;
+#include <vector>
+#include <stack>
+#include <string>
+#include <queue>
+
+#if 0
+template<typename V, bool IsDigraph = true>
+class Map
+{
+public:
+	Map(const string str = "")
+	{
+		size_t size = str.length();
+		_v.resize(size);
+		for(size_t i = 0; i < size; i++)
+			_v[i] = str[i];
+		_map.resize(size);
+		for(size_t i = 0; i < size; i++)
+			_map[i].resize(size, 0);
+	}
+	bool InsertEdge(const V& origin, const V& terminus, const int& weight)
+	{
+		int originSub = FindSub(origin);
+		int terminuSub = FindSub(terminus);
+		if(originSub == terminuSub || originSub < 0 || terminuSub < 0)
+			return false;
+		if(IsDigraph)
+		{
+			_map[originSub][terminuSub] = weight;
+		}
+		else
+		{
+			_map[originSub][terminuSub] = weight;
+			_map[terminuSub][originSub] = weight;
+		}
+		return true;
+	}
+
+	int FindSub(const V& value)
+	{
+		size_t size = _v.size();
+		for(size_t i = 0; i < size; i++)
+			if(value == _v[i])
+				return i;
+		return -1;
+	}
+	void PrintMap()
+	{
+		size_t size = _v.size();
+		cout << " ";
+		for(size_t i = 0; i < size; i++)
+			cout << " " << _v[i];
+		cout << endl;
+		for(size_t i = 0; i < size; i++)
+		{
+			cout << _v[i];
+			for(size_t j = 0; j < size; j++)
+				cout << " " << _map[i][j];
+
+			cout << endl;
+		}
+	}
+private:
+	vector<V> _v;
+	vector<vector<int> > _map;
+};
+#endif
+
+template <typename V>
+struct MapNode
+{
+	V _value;
+	int _weight;
+	MapNode* _Next;
+	MapNode(const V& value = V(), const int& weight = 0)
+		: _value(value)
+		, _weight(weight)
+		, _Next(NULL)
+	{}
+};
+
+template <typename V, bool IsDigraph = true>
+class Map
+{
+typedef MapNode<int> Node;
+typedef Node* PNode;
+public:
+	Map(const string str = "")
+	{
+		size_t size = str.length();
+		_v.resize(size);
+		for(size_t i = 0; i < size; i++)
+			_v[i] = str[i];
+		_map.resize(size);
+		for(size_t i = 0; i < size; i++)
+			_map[i]._value = i;
+	}
+	bool InsertEdge(const V& origin, const V& terminus, const int& weight)
+	{
+		int originSub = FindSub(origin);
+		int terminuSub = FindSub(terminus);
+		if(originSub == terminuSub || originSub < 0 || terminuSub < 0)
+			return false;
+		PNode pCur = &_map[originSub];
+		while(pCur->_Next)
+			pCur = pCur->_Next;
+		pCur->_Next = new Node(terminuSub, weight);
+		if(!IsDigraph)
+		{
+			pCur = &_map[terminuSub];
+			while(pCur->_Next)
+				pCur = pCur->_Next;
+			pCur->_Next = new Node(originSub, weight);
+		}
+		return true;
+	}
+	int FindSub(const V& key)
+	{
+		size_t size = _v.size();
+		for(size_t i = 0; i < size; i++)
+			if(key == _v[i])
+				return i;
+		return -1;
+	}
+	void PrintMap()
+	{
+		size_t size = _v.size();
+		if(size < 1)
+			return;
+		for(size_t i = 0; i < size; i++)
+		{
+			if(_map[i]._Next)
+			{
+				cout << _v[i];
+				PNode pCur = _map[i]._Next;
+				while(pCur)
+				{
+					cout << "-->" << _v[pCur->_value] << "(" << pCur->_weight << ")";
+					pCur = pCur->_Next;
+				}
+				cout << endl;
+			}
+		}
+	}
+	void BFS()
+	{
+		size_t size = _v.size();
+		if(size < 1)
+			return;
+		vector<bool> flags;
+		flags.resize(size, false);
+		queue<PNode> quep;
+		for(size_t i = 0; i < size; i++)
+			if(false == flags[i])
+			{
+				quep.push(&_map[i]);
+				_BFS(quep, flags);
+			}
+		cout << endl;
+	}
+	void _BFS(queue<PNode>& quep, vector<bool>& flags)
+	{
+		while(!quep.empty())
+		{
+			PNode pCur = quep.front(); 
+			if(false == flags[pCur->_value])
+				cout << _v[pCur->_value] << " ";
+			flags[pCur->_value] = true;
+			quep.pop();
+			while(pCur->_Next)
+			{
+				if(false == flags[pCur->_Next->_value])
+					quep.push(pCur->_Next);
+				pCur = pCur->_Next;
+			}
+		}
+	}
+	void DFS()
+	{
+		size_t size = _v.size();
+		if(size < 1)
+			return;
+		vector<bool> flags;
+		flags.resize(size, false);
+		for(size_t i = 0; i < size; i++)
+			if(false == flags[i])
+				_DFS(&_map[i], flags);
+		cout << endl;
+	}
+	void _DFS(PNode pCur, vector<bool>& flags)
+	{
+		if(true == flags[pCur->_value])
+			return;
+		cout << _v[pCur->_value] << " ";
+		flags[pCur->_value] = true;
+		while(pCur->_Next)
+		{
+			if(false == flags[pCur->_Next->_value])
+				_DFS(&_map[pCur->_Next->_value], flags);
+			pCur = pCur->_Next;
+		}
+	}
+private:
+	vector<V> _v;
+	vector<Node> _map;	
+};
