@@ -1,0 +1,136 @@
+Makefile
+cc=gcc
+
+.PHONY:all
+all:client server
+
+client:client.c
+	$(cc) -o $@ $^
+
+server:server.c
+	$(cc) -o $@ $^
+
+.PHONY:clean
+clean:
+	rm -f client server
+  
+  server.c
+  #include <stdio.h>
+#include <stdlib.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <string.h>
+#include <sys/types.h>
+
+
+
+#define ERR_EXIT(m) \
+	do\
+	{\
+		perror(m);\
+		exit(EXIT_FAILURE);\
+	}while(0)
+
+int main(int argc, char* argv[])
+{
+	if(argc < 3)
+	{
+		printf("./server [addr] [port]\n");
+		exit(EXIT_SUCCESS);
+	}
+	int sock = socket(AF_INET, SOCK_DGRAM, 0);
+	if(sock < 0)
+		ERR_EXIT("socket");
+	
+	struct sockaddr_in local;
+	local.sin_family = AF_INET;
+	local.sin_port = htons(atoi(argv[2]));
+	local.sin_addr.s_addr = inet_addr(argv[1]);
+
+	if(bind(sock, (struct sockaddr*)&local, sizeof(local)) < 0)
+		ERR_EXIT("bind");
+
+	char buf[1024];
+	struct sockaddr_in client;
+	while(1)
+	{
+		buf[0] = 0;
+		socklen_t len = sizeof(client);
+		ssize_t s = recvfrom(sock, buf, sizeof(buf)-1, 0, (struct sockaddr*)&client, &len);
+		buf[s] = 0;
+		if(strcmp(buf, "quit\n") == 0)
+		{
+			printf("client quit!\n");
+			continue;
+		}
+		if(s > 0)
+		{
+			printf("[%s:%d]: %s", inet_ntoa(client.sin_addr), ntohs(client.sin_port), buf);
+			sendto(sock, buf, strlen(buf), 0, (struct sockaddr*)&client, sizeof(client));
+		}
+	}
+
+
+	return 0;
+}
+
+client.c
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <string.h>
+#include <sys/types.h>
+
+
+
+#define ERR_EXIT(m) \
+	do\
+	{\
+		perror(m);\
+		exit(EXIT_FAILURE);\
+	}while(0)
+
+int main(int argc, char* argv[])
+{
+	if(argc < 3)
+	{
+		printf("./client [addr] [port]\n");
+		exit(EXIT_SUCCESS);
+	}
+	int sock = socket(AF_INET, SOCK_DGRAM, 0);
+	if(sock < 0)
+		ERR_EXIT("socket");
+	
+	struct sockaddr_in server;
+	server.sin_family = AF_INET;
+	server.sin_port = htons(atoi(argv[2]));
+	server.sin_addr.s_addr = inet_addr(argv[1]);
+
+	char buf[1024];
+	struct sockaddr_in peer;
+	while(1)
+	{
+		buf[0] = 0;
+		socklen_t len = sizeof(peer);
+		write(1, "please input:>", strlen("please input:>"));
+		ssize_t s = read(0, buf, sizeof(buf)-1);
+		if(s > 0)
+		{
+			buf[s] = 0;
+			sendto(sock, buf, strlen(buf), 0, (struct sockaddr*)&server, sizeof(server));
+			if(strcmp(buf, "quit\n") == 0)
+				exit(EXIT_SUCCESS);
+			s = recvfrom(sock, buf, sizeof(buf)-1, 0, (struct sockaddr*)&peer, &len);
+			if(s > 0)
+			{
+				buf[s] = 0;
+				printf("server: %s", buf);
+				
+			}
+		}
+	}
+
+
+	return 0;
+}
