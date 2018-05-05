@@ -203,6 +203,7 @@ private:
 		delete pRoot;
 		pRoot = NULL;
 	}
+	
 private:
 	pNode _pRoot;
 };
