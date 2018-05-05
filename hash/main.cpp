@@ -45,14 +45,7 @@ void test2()
 		ht.Insert(number, i);
 		cout << number << " ";
 	}
-	/*
-	ht.Insert(1);
-	ht.Insert(3);
-	ht.Insert(5);
-	ht.Insert(6);
-	ht.Insert(8);
-	ht.Insert(2);
-	*/
+
 	ht.PrintElem();
 }
 
