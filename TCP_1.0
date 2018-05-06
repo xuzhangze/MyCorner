@@ -1,0 +1,162 @@
+Makefile
+cc=gcc
+
+.PHONY:all
+all:client server
+
+client:client.c
+	$(cc) -o $@ $^
+
+server:server.c
+	$(cc) -o $@ $^
+
+.PHONY:clean
+clean:
+	rm -f client server
+  
+  server.c
+  #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <netinet/in.h>
+
+int CreateSock(char *id, int port)
+{
+	int sock = socket(AF_INET, SOCK_STREAM, 0);
+	if(sock < 0)
+	{
+		printf("socket error\n");
+		exit(2);
+	}
+
+	struct sockaddr_in server_socket;
+	bzero(&server_socket, sizeof(server_socket));
+	server_socket.sin_family = AF_INET;
+	server_socket.sin_port = htons(port);
+	server_socket.sin_addr.s_addr = htonl(INADDR_ANY);
+
+	if(bind(sock, (struct sockaddr*)&server_socket, sizeof(struct sockaddr_in)) < 0)
+	{
+		printf("bind error\n");
+		exit(3);
+	}
+
+	if(listen(sock, 10)< 0)
+	{
+		printf("listen error\n");
+		exit(4);
+	}
+	return sock;
+}
+
+int main(int argc, char* argv[])
+{
+	if(argc != 3)
+	{
+		printf("./server [addr]:[port]\n");
+		return 1;
+	}
+
+	int sock = CreateSock(argv[1], atoi(argv[2]));
+
+	printf("bind and listen success, wait accept..\n");
+
+	struct sockaddr_in client_socket;
+
+	for(;;)
+	{
+		socklen_t len = 0;
+		int client_sock = accept(sock, (struct sockaddr*)&client_socket, &len);
+		if(client_sock < 0)
+		{
+			printf("accept error\n");
+			continue;
+		}
+
+		char buf_ip[INET_ADDRSTRLEN];
+		memset(buf_ip, 0x00, sizeof(buf_ip));
+		inet_ntop(AF_INET, &client_socket.sin_addr, buf_ip, sizeof(buf_ip));
+		printf("get commont, client ip:%s, port:%d\n", buf_ip, ntohs(client_socket.sin_port));
+		while(1)
+		{
+			char buf[1024];
+			memset(buf, 0x00, sizeof(buf));
+			read(client_sock, buf, sizeof(buf));
+			printf("client:>%s\n", buf);
+			write(client_sock, buf, strlen(buf));
+			printf("wait client");
+		}
+	}
+	close(sock);
+
+	return 0;
+}
+
+client.c
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+
+
+
+
+int main(int argc, char *argv[])
+{
+	if(argc < 3)
+	{
+		printf("%s [addr]:[port]\n", argv[0]);
+		return 1;
+	}
+
+	int sock = socket(AF_INET, SOCK_STREAM, 0);
+	if(sock < 0)
+	{
+		printf("socket error\n");
+		exit(2);
+	}
+
+	struct sockaddr_in client_socket;
+	bzero(&client_socket, sizeof(client_socket));
+	client_socket.sin_family = AF_INET;
+	inet_pton(AF_INET, argv[1], &client_socket.sin_addr);
+	client_socket.sin_port = htons(atoi(argv[2]));
+
+	if(connect(sock, (struct sockaddr*)&client_socket, sizeof(client_socket)) < 0)
+	{
+		printf("connect error\n");
+		exit(3);
+	}
+	printf("connect success...\n");
+
+	for(;;)
+	{
+		char buf[1024];
+		memset(buf, 0x00, sizeof(buf));
+		printf("please input:>");
+		fflush(stdout);
+		read(0, buf, sizeof(buf));
+		write(sock, buf, strlen(buf));
+		if(strncasecmp(buf, "quit", 4) == 0)
+		{
+			printf("client quit\n");
+			break;
+		}
+		printf("please wait...\n");
+		memset(buf, 0x00, sizeof(buf));
+		read(sock, buf, sizeof(buf));
+		printf("server:%s\n", buf);
+		printf("please wait...\n");
+	}
+
+	close(sock);
+
+	return 0;
+}
