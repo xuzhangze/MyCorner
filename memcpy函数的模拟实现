@@ -1,0 +1,24 @@
+#include <stdio.h>
+
+void *mymemcpy(void* dst, const void *src, size_t size)
+{
+	if(NULL == dst || NULL == src)
+		return NULL;
+	char* dest = (char*)dst;
+	char* str = (char*)src;
+	while(size)
+		dest[--size] = str[size];
+	return dst;
+}
+
+int main()
+{
+	char buf[] = "aaaabbbbccccddddeeeffgggg";	
+	printf("buf : %s\n", buf);
+	mymemcpy(buf+1, buf+4, 3);
+	printf("buf : %s\n", buf);
+	mymemcpy(buf+8, buf, 0);
+	printf("buf : %s\n", buf);
+
+	return 0;
+}
