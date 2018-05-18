@@ -1,0 +1,29 @@
+#include <stdio.h>
+
+void *mymemmove(void* dst, const void *src, size_t size)
+{
+	if(NULL == dst || NULL == src)
+		return NULL;
+	char* dest = (char*)dst;
+	char* str = (char*)src;
+	if(dest < str && dest+size > str)
+	{
+		for(size_t i = 0; i < size; ++i)
+			dest[i] = str[i];
+	}
+	else
+		while(size)
+			dest[--size] = str[size];
+}
+
+int main()
+{
+	char buf[] = "aaaabbbbccccddddeeeffgggg";	
+	printf("buf : %s\n", buf);
+	mymemmove(buf+4, buf, 8);
+	printf("buf : %s\n", buf);
+	mymemmove(buf, buf+4, 8);
+	printf("buf : %s\n", buf);
+
+	return 0;
+}
