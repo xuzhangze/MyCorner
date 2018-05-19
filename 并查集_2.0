@@ -1,0 +1,97 @@
+#include <iostream>
+using namespace std;
+#include <vector>
+#include <string>
+
+template <class V>
+struct Pair
+{
+	Pair()
+		: _first(-1)
+		, _second(V())
+	{}
+
+	Pair(V& value)
+		: _first(-1)
+		, _second(value)
+	{}
+
+	int _first;
+	V _second;
+};
+
+template <class V>
+class UFS
+{
+public:
+	UFS()
+		: _size(0)
+	{}
+	UFS(int size)
+		: _size(0)
+		, _set(size)
+	{}
+	void Union(const V& first, const V& second)
+	{
+		size_t Root1 = _FindRoot(first);
+		size_t Root2 = _FindRoot(second);
+		if(Root1 != Root2)
+		{
+			_set[Root1]._first += _set[Root2]._first;
+			_set[Root2]._first = Root1;
+		}
+	}
+	size_t SetCount()
+	{
+		size_t count = 0;
+		for(size_t i = 0; i < _size; ++i)
+			if(_set[i]._first < -1)
+				++count;
+		return count;
+	}
+private:
+	size_t _FindRoot(const V& value)
+	{
+		size_t i = 0;
+		for(; i < _size; ++i)
+			if(_set[i]._second == value)
+				break;
+		if(i == _size)
+		{
+			_set[i]._second = value;
+			++_size;
+		}
+		if(_set[i]._first >= 0)
+			return _set[i]._first;
+		return i;
+	}
+private:
+	size_t _size;
+	vector<Pair<V> > _set;
+};
+
+void test()
+{
+	UFS<int> uf(6);
+	uf.Union(2,3);
+	uf.Union(2,0);
+	uf.Union(1,4);
+	cout << "setcount : " << uf.SetCount() << endl;
+}
+void test1()
+{
+	UFS<string> uf(9);
+	uf.Union("张三","李四");
+	uf.Union("张三","王五");
+	uf.Union("小二","小三");
+	uf.Union("abc","abcde");
+	uf.Union("lkj","ab");
+	cout << "setcount : " << uf.SetCount() << endl;
+}
+
+int main()
+{
+	test1();
+
+	return 0;
+}
