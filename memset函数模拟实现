@@ -1,0 +1,19 @@
+#include <stdio.h>
+
+void *mymemset(void *dst, int c, size_t count)
+{
+	if(NULL == dst)
+		return NULL;
+	char *dest = (char*)dst;
+	while(count)
+		dest[--count] = c;
+}
+
+int main()
+{
+	int i = 0;
+	mymemset(&i, 0x11, 4);
+	printf("i = %d\n", i);
+
+	return 0;
+}
