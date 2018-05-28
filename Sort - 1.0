@@ -40,6 +40,8 @@ void SelectSort(int *array, size_t size)
 	}
 }
 
+
+
 //////////////////insertsort/////////////////////
 
 void InsertSort(int *array, size_t size)
