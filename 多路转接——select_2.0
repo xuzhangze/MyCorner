@@ -1,0 +1,152 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/select.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
+#define _BACKLOG_ 10
+#define NUMS 1024
+#define INIT_VAL -1
+
+static int CreateSocket(int port)
+{
+	int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	if(sockfd == -1)
+	{
+		perror("socket");
+		exit(2);
+	}
+
+	struct sockaddr_in addr;
+	addr.sin_family = AF_INET;
+	addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	addr.sin_port = htons(port);
+
+	int opt = 1;
+	setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+
+	if(bind(sockfd, (struct sockaddr*)&addr, sizeof(addr)) == -1)
+	{
+		perror("bind");
+		exit(3);
+	}
+
+	if(listen(sockfd, _BACKLOG_) == -1)
+	{
+		perror("listen");
+		exit(4);
+	}
+
+	return sockfd;
+}
+
+static void Init_fd(int *arr, int size)
+{
+	int i = 0;
+	for(; i < size; ++i)
+		arr[i] = INIT_VAL; 
+}
+
+static void Addfdtoarr(int *arr, int size, int fd)
+{
+	int i = 0;
+	for(; i < size; ++i)
+	{
+		if(arr[i] == INIT_VAL)
+		{
+			arr[i] = fd;
+			break;
+		}
+	}
+}
+
+static int Set_fd(int* arr, int size, fd_set* pfds)
+{
+	int i = 0;
+	FD_ZERO(pfds);
+	int max = 0;
+	for(; i < size; ++i)
+	{
+		if(arr[i] == INIT_VAL)
+			break;
+		FD_SET(arr[i], pfds);
+		if(arr[i] > max)
+			max = arr[i];
+	}
+	return max;
+}
+
+void Service(fd_set* pfds, int* arr, int size)
+{
+	int i = 0;
+	for(; i < size; ++i)
+	{
+		if(arr[i] == INIT_VAL)
+			break;
+		if(i == 0 && FD_ISSET(arr[i], pfds))
+		{
+			struct sockaddr_in client_addr;
+			socklen_t len = 0;
+			int client_sock = accept(arr[i], (struct sockaddr*)&client_addr, &len);
+			printf("get connect:[%s]:[%d]\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
+			Addfdtoarr(arr, size, client_sock);
+		}
+		else if(FD_ISSET(arr[i], pfds))
+		{
+			int s = 0;
+			char buf[1024];
+			if((s = read(arr[i], buf, sizeof(buf)-1)) < 0)
+				perror("read");
+			else if(s == 0)
+			{
+				printf("client quit\n");
+				close(arr[i]);
+				arr[i] = INIT_VAL;
+			}
+			else
+			{
+				buf[s] = 0;
+				write(1, buf, strlen(buf));
+			}
+		}
+	}
+}
+
+int main(int argc, char* argv[])
+{
+	if(argc != 2)
+	{
+		printf("Usage: %s [port]\n", argv[0]);
+		return 1;
+	}
+
+	int listen_fd = CreateSocket(atoi(argv[1]));
+
+	fd_set read_fds;
+	int fd_list[NUMS];
+	Init_fd(fd_list, NUMS);
+	Addfdtoarr(fd_list, NUMS, listen_fd);
+
+	for(;;)
+	{
+		int max = Set_fd(fd_list, NUMS, &read_fds);
+		switch(select(max+1, &read_fds, NULL, NULL, NULL))
+		{
+			case -1:
+					perror("select");
+					break;
+			case 0:
+					printf("time over\n");
+					break;
+			default :
+					Service(&read_fds, fd_list, NUMS);
+					break;
+		}
+	}
+
+	return 0;
+}
