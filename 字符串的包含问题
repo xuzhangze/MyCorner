@@ -1,0 +1,16 @@
+bool test(string a, string b)
+{
+	size_t len_a = a.size();
+	size_t len_b = b.size();
+	if (len_a == 0 || len_b == 0)
+		return false;
+	int hash = 0;
+	for (size_t i = 0; i < len_a; ++i)
+		hash |= (1 << (a[i] - 'a'));
+	for (size_t i = 0; i < len_b; ++i)
+	{
+		if ((hash & (1 << (b[i] - 'a'))) == 0)
+			return false;
+	}
+	return true;
+}
