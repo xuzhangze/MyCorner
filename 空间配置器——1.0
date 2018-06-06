@@ -1,0 +1,271 @@
+#pragma once
+
+#include <iostream>
+using namespace std;
+#include <cstdlib>
+
+template<int inst>
+class malloc_alloc_template
+{
+	static void (*Malloc_alloc_oom_handler)();
+public:
+	static void* Allocate(size_t n)
+	{
+		cout << "malloc_alloc::Allocate" << endl;
+		void *result = malloc(n);
+		if(NULL == result)
+			result = Oom_malloc(n);
+		return result;
+	}
+	static void* Reallocate(void *p, size_t new_size)
+	{
+		void *result = realloc(p, new_size);
+		if(NULL == result)
+			result = Oom_realloc(p, new_size);
+		return result;
+	}
+	static void Deallocate(void* p)
+	{
+		cout << "malloc_alloc::Deallocate" << endl;
+		if(NULL != p)
+			free(p);
+	}
+	static void (*Set_oom_handler(void(*f)()))()
+	{
+		void (*old)() = Malloc_alloc_oom_handler;
+		Malloc_alloc_oom_handler = f;
+		return old;
+	}
+	static void *Oom_malloc(size_t n)
+	{
+		void (*my_alloc_oom_handler)();
+		void *result = NULL;
+		for(;;)
+		{
+			my_alloc_oom_handler = Malloc_alloc_oom_handler;
+			if(NULL == my_alloc_oom_handler)
+			{
+				cerr << "out of memory" << endl;
+				exit(1);
+			}
+			(*my_alloc_oom_handler)();
+			result = malloc(n);
+			if(result)
+				return result;
+		}
+	}
+	static void *Oom_realloc(void* p, size_t n)
+	{
+		void (*my_alloc_oom_handler)();
+		void *result = NULL;
+		for(;;)
+		{
+			my_alloc_oom_handler = Malloc_alloc_oom_handler;
+			if(NULL == my_alloc_oom_handler)
+			{
+				cerr << "out of memory" << endl;
+				exit(1);
+			}
+			(*my_alloc_oom_handler)();
+			result = realloc(p, n);
+			if(result)
+				return result;
+		}
+	}
+};
+template<int inst>
+void (*malloc_alloc_template<inst>::Malloc_alloc_oom_handler)() = 0;
+
+
+template<class T, class Alloc>
+class Simple_alloc
+{
+public:
+	static T* allocate(size_t n)
+	{
+		return 0==n ? 0 : (T*)Alloc::allocate(n*sizeof(T));
+	}
+	static T* allocate()
+	{
+		return (T*)Alloc::Allocate(sizeof(T));
+	}
+	static void deallocate(T* p, size_t n)
+	{
+		if(NULL != p && 0 != n)
+			Alloc::Deallocate(p);
+	}
+	static void deallocate(T* p)
+	{
+		if(NULL != p)
+			Alloc::Deallocate(p);
+	}
+};
+
+template<int inst>
+class default_alloc_template
+{
+private:
+	enum{ALIGN = 8};
+	enum{MAX_BYTES = 128};
+	enum{NFREELISTS = MAX_BYTES / ALIGN};
+	static size_t ROUND_UP(size_t bytes)
+	{
+		return (bytes+ALIGN) & ~(ALIGN-1);
+	}
+	static size_t FREELIST_INDEX(size_t bytes)
+	{
+		return (bytes+ALIGN-1)/ALIGN-1;
+	}
+	union Obj
+	{
+		union Obj* _free_list_node;
+		char client_data[1];
+	};
+	static Obj* _free_list[NFREELISTS];
+	static char* _start_free;
+	static char* _end_free;
+	static size_t _heap_size;
+public:
+	static void* Allocate(size_t n)
+	{
+		Obj** my_free_list = NULL;
+		Obj *result = NULL;
+		if(n > MAX_BYTES)
+			return malloc_alloc_template<inst>::Allocate(n);
+		cout << "default_alloc<0>::Allocate" << endl;
+		my_free_list = _free_list+FREELIST_INDEX(n);
+		result = *my_free_list;
+		if(NULL == result)
+		{
+			void* r = Refill(ROUND_UP(n));
+			return r;
+		}
+		*my_free_list = result->_free_list_node;
+		return result;
+	}
+	static void Deallocate(void* p, size_t n)
+	{
+		Obj *q = (Obj*)p;
+		if(n > MAX_BYTES)
+		{
+			malloc_alloc_template<inst>::Deallocate(p);
+			return;
+		}
+		cout << "default_allloc<0>::deallocate" << endl;
+		Obj **my_free_list = _free_list+FREELIST_INDEX(n);
+		q->_free_list_node = *my_free_list;
+		*my_free_list = q;
+	}
+	static void* Refill(size_t n)
+	{
+		int nobjs = 20;
+		char* chunk = Chunk_alloc(n, nobjs);
+		Obj** my_free_list = NULL;
+		Obj* result = NULL;
+		Obj* next_obj = NULL;
+		Obj* current_obj = NULL;
+		cout << "Refill" << endl;
+		if(1 == nobjs)
+			return chunk;
+		my_free_list = _free_list+FREELIST_INDEX(n);
+		result = (Obj*)chunk;
+		*(my_free_list) = next_obj = (Obj*)(chunk+n);
+		for(int i = 1; ; ++i)
+		{
+			current_obj = next_obj;
+			next_obj = (Obj*)((char*)next_obj+n);
+			if(i == nobjs-1)
+			{
+				current_obj->_free_list_node = NULL;
+				break;
+			}
+			else
+				current_obj->_free_list_node = next_obj;
+		}
+		return result;
+	}
+	static char* Chunk_alloc(size_t n, int& nobjs)
+	{
+		char* result = NULL;
+		size_t total_bytes = n*nobjs;
+		size_t bytes_left = _end_free - _start_free;
+		cout << "Chunk_alloc" << endl;
+		if(bytes_left >= total_bytes)
+		{
+			cout << "bytes_left >= total_bytes" << endl;
+			result = _start_free;
+			_start_free += total_bytes;
+			return result;
+		}
+		else if(bytes_left > n)
+		{
+			cout << "bytes_left>n" << endl;
+			nobjs = bytes_left/n;
+			total_bytes = n*nobjs;
+			result = _start_free;
+			_start_free += total_bytes;
+			return result;
+		}
+		else
+		{
+			cout << "bytes_left < n" << endl;
+			size_t bytes_to_get = 2*total_bytes+ROUND_UP(_heap_size>>4);
+			if(bytes_left > 0)
+			{
+				cout << "bytes_left > 0" << endl;
+				Obj** my_free_list = _free_list+FREELIST_INDEX(bytes_left);
+				((Obj*)_start_free)->_free_list_node = *(my_free_list);
+				*(my_free_list) = (Obj*)_start_free;
+			}
+			_start_free = (char*)malloc(bytes_to_get);
+			if(0 == _start_free)
+			{
+				Obj** my_free_list = NULL;
+				Obj *p = NULL;
+				for(size_t i = 0; i < MAX_BYTES; i += ALIGN)
+				{
+					my_free_list = _free_list+FREELIST_INDEX(i);
+					p = *(my_free_list);
+					if(p)
+					{
+						*(my_free_list) = p->_free_list_node;
+						_start_free = (char*)p;
+						_end_free = (char*)p+i;
+						Chunk_alloc(n, nobjs);
+					}
+				}
+				_end_free = 0;
+				_start_free = (char*)malloc_alloc_template<inst>::Allocate(bytes_to_get);
+			}
+			_heap_size += bytes_to_get;
+			_end_free = _start_free+bytes_to_get;
+			return Chunk_alloc(n, nobjs);
+		}
+	}
+};
+template<int inst>
+char* default_alloc_template<inst>::_start_free = 0;
+
+template<int inst>
+char* default_alloc_template<inst>:: _end_free = 0;
+template<int inst>
+size_t default_alloc_template<inst>::_heap_size = 0;
+template<int inst>
+typename default_alloc_template<inst>::Obj* default_alloc_template<inst>::_free_list[default_alloc_template<inst>::NFREELISTS] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+
+template<class T>
+class Simple_default_alloc
+{
+public:
+	static T* Allocate(size_t n)
+	{
+		if(n > 128)
+			return (T*)malloc_alloc_template<0>::Allocate(n*sizeof(T));
+		return (T*)default_alloc_template<0>::Allocate(n*sizeof(T));
+	}
+	static void Deallocate(T* p, size_t n)
+	{
+		default_alloc_template<0>::Deallocate(p, n*sizeof(T));
+	}
+};
